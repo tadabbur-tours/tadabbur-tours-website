@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { addBookingToSheet, BookingData } from '@/lib/googleSheets';
 
 // Only initialize Stripe if we have the secret key (not during build time)
 const stripe = process.env.STRIPE_SECRET_KEY 
@@ -84,6 +85,31 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   // Here you would save to your database
   // For now, we'll just log it
   console.log('Booking data to save:', bookingData);
+  
+  // Save to Google Sheets
+  try {
+    const sheetData: BookingData = {
+      timestamp: new Date().toISOString(),
+      sessionId: bookingData.sessionId,
+      packageName: bookingData.packageName || 'Unknown Package',
+      packageId: bookingData.packageId || 'unknown',
+      spots: bookingData.spots,
+      buyerInfo: bookingData.buyerInfo,
+      participants: bookingData.participants,
+      totalAmount: bookingData.totalAmount,
+      depositAmount: parseInt(session.metadata?.depositAmount || '0'),
+      remainingAmount: parseInt(session.metadata?.remainingAmount || '0'),
+      paymentStatus: bookingData.paymentStatus,
+      paymentType: bookingData.paymentType,
+      installmentDates: bookingData.installmentDates
+    };
+    
+    await addBookingToSheet(sheetData);
+    console.log('Booking added to Google Sheet successfully');
+  } catch (sheetError) {
+    console.error('Error adding booking to Google Sheet:', sheetError);
+    // Don't fail the webhook if Google Sheets fails
+  }
   
   // TODO: Save to database
   // await saveBooking(bookingData);

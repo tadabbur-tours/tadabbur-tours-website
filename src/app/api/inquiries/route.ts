@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { addInquiryToSheet, InquiryData } from '@/lib/googleSheets';
 
 export async function POST(request: NextRequest) {
   try {
@@ -69,6 +70,26 @@ export async function POST(request: NextRequest) {
     // Create JSON file with person's name
     const jsonFile = path.join(inquiriesDir, filename);
     fs.writeFileSync(jsonFile, JSON.stringify(inquiryData, null, 2), 'utf8');
+
+    // Also add to Google Sheets
+    try {
+      const sheetData: InquiryData = {
+        timestamp: new Date().toISOString(),
+        name: `${firstName} ${lastName}`,
+        email,
+        phone,
+        numberOfPeople,
+        package: packageName,
+        message: message || 'No message provided',
+        source: hearAboutUs || 'Unknown'
+      };
+      
+      await addInquiryToSheet(sheetData);
+      console.log('Inquiry added to Google Sheet successfully');
+    } catch (sheetError) {
+      console.error('Error adding inquiry to Google Sheet:', sheetError);
+      // Don't fail the request if Google Sheets fails
+    }
 
     console.log(`New inquiry saved: ${inquiryData.id}`);
     console.log(`File created: ${jsonFile}`);
