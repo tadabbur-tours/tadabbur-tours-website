@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
     // your project has type errors.
     ignoreBuildErrors: true,
   },
+  // Additional build configuration
+  experimental: {
+    esmExternals: false,
+  },
 };
 
 export default nextConfig;
