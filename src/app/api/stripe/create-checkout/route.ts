@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     // Installments will be handled separately via payment links or future checkout sessions
 
     // Configure payment method types based on selection
-    const paymentMethodTypes = paymentMethod === 'bank_transfer' 
+    const paymentMethodTypes: ('card' | 'us_bank_account' | 'link')[] = paymentMethod === 'bank_transfer' 
       ? ['card', 'us_bank_account', 'link'] // ACH, wire transfer, and other bank methods
       : ['card', 'link']; // Card and Link payments
 
@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
         quadSpots: spots.quad.toString(),
         totalSpots: (spots.dual + spots.triple + spots.quad).toString(),
         participantCount: participantCount.toString(),
-        participantNames: participants.map((p: any) => `${p.firstName} ${p.lastName}`).join(', '),
+        participantNames: participants.map((p: { firstName: string; lastName: string }) => `${p.firstName} ${p.lastName}`).join(', '),
         buyerName: `${buyerInfo.firstName} ${buyerInfo.lastName}`,
         buyerEmail: buyerInfo.email,
         buyerPhone: buyerInfo.phone,

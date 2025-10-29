@@ -214,12 +214,6 @@ export default function Home() {
     });
   };
 
-  const scrollToPackages = () => {
-    // Ensure we're in the browser environment
-    if (typeof window !== 'undefined') {
-      scrollToSection('packages');
-    }
-  };
 
   // Smooth scroll with navbar offset
   const scrollToSection = (sectionId: string) => {

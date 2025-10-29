@@ -1,13 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-export default function BookingSuccess() {
+function BookingSuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
-  const [bookingDetails, setBookingDetails] = useState<any>(null);
+  const [bookingDetails, setBookingDetails] = useState<{
+    packageName: string;
+    participantCount: number;
+    totalAmount: number;
+    depositAmount: number;
+    remainingAmount: number;
+    installmentDates: string[];
+  } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,9 +24,9 @@ export default function BookingSuccess() {
       setTimeout(() => {
         setBookingDetails({
           packageName: 'Umrah Package',
-          totalAmount: '$3,750',
-          depositPaid: '$750',
-          remainingAmount: '$3,000',
+          totalAmount: 375000, // $3,750 in cents
+          depositAmount: 75000, // $750 in cents
+          remainingAmount: 300000, // $3,000 in cents
           installmentDates: ['January 1, 2025', 'February 1, 2025', 'March 1, 2025'],
           participantCount: 1
         });
@@ -68,15 +75,15 @@ export default function BookingSuccess() {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Total Amount:</span>
-              <span className="font-medium">{bookingDetails?.totalAmount}</span>
+              <span className="font-medium">${(bookingDetails?.totalAmount || 0) / 100}</span>
             </div>
             <div className="flex justify-between text-emerald-600">
               <span>Deposit Paid:</span>
-              <span className="font-semibold">{bookingDetails?.depositPaid}</span>
+              <span className="font-semibold">${(bookingDetails?.depositAmount || 0) / 100}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Remaining Balance:</span>
-              <span className="font-medium">{bookingDetails?.remainingAmount}</span>
+              <span className="font-medium">${(bookingDetails?.remainingAmount || 0) / 100}</span>
             </div>
           </div>
         </div>
@@ -128,7 +135,7 @@ export default function BookingSuccess() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
           <h3 className="font-semibold text-blue-800 mb-2">What's Next?</h3>
           <ul className="text-sm text-blue-700 space-y-1">
-            <li>• You'll receive a confirmation email within 24 hours</li>
+            <li>• You&apos;ll receive a confirmation email within 24 hours</li>
             <li>• Travel documents and itinerary will be sent 30 days before departure</li>
             <li>• We'll contact you to finalize travel arrangements</li>
             <li>• Keep an eye on your email for installment reminders</li>
@@ -152,5 +159,13 @@ export default function BookingSuccess() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function BookingSuccess() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BookingSuccessContent />
+    </Suspense>
   );
 }

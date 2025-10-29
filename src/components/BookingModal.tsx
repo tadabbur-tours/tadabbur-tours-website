@@ -108,7 +108,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
         participants: newParticipants
       }));
     }
-  }, [formData.spots, participantCount]);
+  }, [formData.spots, participantCount, getTotalSpots]);
 
   if (!isOpen) return null;
 
@@ -853,9 +853,9 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                             <h6 className="font-medium text-blue-800 mb-1">How it works:</h6>
                             <ul className="text-xs text-blue-700 space-y-1">
                               <li>• Pay your $750 deposit today to secure your booking</li>
-                              <li>• We'll send you payment links for future installments</li>
+                              <li>• We&apos;ll send you payment links for future installments</li>
                               <li>• Installments are due monthly starting next month</li>
-                              <li>• You'll receive email reminders before each payment</li>
+                              <li>• You&apos;ll receive email reminders before each payment</li>
                             </ul>
                           </div>
                         </div>
@@ -904,8 +904,8 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                             <ul className="text-xs text-blue-700 space-y-1">
                               <li>• Pay your $750 deposit via ACH or wire transfer</li>
                               <li>• Secure payment processing through Stripe</li>
-                              <li>• We'll send you payment links for future installments</li>
-                              <li>• You'll receive email reminders before each payment</li>
+                              <li>• We&apos;ll send you payment links for future installments</li>
+                              <li>• You&apos;ll receive email reminders before each payment</li>
                             </ul>
                           </div>
                         </div>

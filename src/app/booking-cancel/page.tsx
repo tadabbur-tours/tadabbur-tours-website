@@ -27,7 +27,7 @@ export default function BookingCancel() {
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="font-medium text-gray-900 mb-2">Your booking details are still saved</h3>
             <p className="text-sm text-gray-600">
-              If you'd like to complete your booking, you can return to the booking form and try again. 
+              If you&apos;d like to complete your booking, you can return to the booking form and try again. 
               All your information will be preserved.
             </p>
           </div>
