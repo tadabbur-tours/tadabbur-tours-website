@@ -77,3 +77,13 @@ jspm_packages/
 # Temporary folders
 tmp/
 temp/
+
+# Private information and data files
+bookings/
+inquiries/
+env.local.mjs
+STRIPE_SETUP_GUIDE.md
+SETUP.md
+
+# TypeScript build info
+tsconfig.tsbuildinfo
