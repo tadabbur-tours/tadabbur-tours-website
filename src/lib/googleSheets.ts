@@ -104,7 +104,8 @@ export async function addInquiryToSheet(data: InquiryData): Promise<void> {
     console.log('Inquiry added to Google Sheet successfully');
   } catch (error) {
     console.error('Error adding inquiry to Google Sheet:', error);
-    throw error;
+    // Don't throw the error - just log it and continue
+    return;
   }
 }
 
@@ -149,6 +150,7 @@ export async function addBookingToSheet(data: BookingData): Promise<void> {
     console.log('Booking added to Google Sheet successfully');
   } catch (error) {
     console.error('Error adding booking to Google Sheet:', error);
-    throw error;
+    // Don't throw the error - just log it and continue
+    return;
   }
 }

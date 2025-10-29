@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     const jsonFile = path.join(inquiriesDir, filename);
     fs.writeFileSync(jsonFile, JSON.stringify(inquiryData, null, 2), 'utf8');
 
-    // Also add to Google Sheets
+    // Also add to Google Sheets (optional - don't fail if this doesn't work)
     try {
       const sheetData: InquiryData = {
         timestamp: new Date().toISOString(),
@@ -87,8 +87,8 @@ export async function POST(request: NextRequest) {
       await addInquiryToSheet(sheetData);
       console.log('Inquiry added to Google Sheet successfully');
     } catch (sheetError) {
-      console.error('Error adding inquiry to Google Sheet:', sheetError);
-      // Don't fail the request if Google Sheets fails
+      console.error('Error adding inquiry to Google Sheet (non-critical):', sheetError);
+      // This is non-critical - inquiry is still saved locally
     }
 
     console.log(`New inquiry saved: ${inquiryData.id}`);
