@@ -1,0 +1,29 @@
+{
+  "id": "inq_1761196736967_plartg77m",
+  "package": {
+    "id": "august",
+    "name": "August Umrah",
+    "price": "$3,300",
+    "dates": "August 5-15, 2027",
+    "duration": "10 days"
+  },
+  "customer": {
+    "firstName": "Ahmad",
+    "lastName": "Jawad",
+    "email": "ahmadjawad0021@gmail.com",
+    "phone": "6124331300",
+    "fullName": "Ahmad Jawad"
+  },
+  "travel": {
+    "numberOfPeople": "4",
+    "preferredContactMethod": "phone",
+    "travelExperience": "first-time",
+    "specialRequirements": "Can I have a wife please"
+  },
+  "inquiry": {
+    "message": "Hey there billy",
+    "hearAboutUs": "friend-family",
+    "submittedAt": "2025-10-23T05:18:56.601Z",
+    "status": "new"
+  }
+}

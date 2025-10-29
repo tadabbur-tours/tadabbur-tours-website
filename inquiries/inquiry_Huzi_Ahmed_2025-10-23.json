@@ -1,0 +1,29 @@
+{
+  "id": "inq_1761197326094_a2ue5nq6b",
+  "package": {
+    "id": "august",
+    "name": "August Umrah",
+    "price": "$3,300",
+    "dates": "August 5-15, 2027",
+    "duration": "10 days"
+  },
+  "customer": {
+    "firstName": "Huzi",
+    "lastName": "Ahmed",
+    "email": "hA@gmail.com",
+    "phone": "6124331300",
+    "fullName": "Huzi Ahmed"
+  },
+  "travel": {
+    "numberOfPeople": "2",
+    "preferredContactMethod": "phone",
+    "travelExperience": "experienced",
+    "specialRequirements": "I have autism"
+  },
+  "inquiry": {
+    "message": "I have autism\n",
+    "hearAboutUs": "social-media",
+    "submittedAt": "2025-10-23T05:28:45.814Z",
+    "status": "new"
+  }
+}
