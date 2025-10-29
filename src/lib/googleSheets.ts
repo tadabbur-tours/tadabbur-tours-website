@@ -1,15 +1,37 @@
 import { google } from 'googleapis';
 
-// Initialize Google Sheets API
-const auth = new google.auth.GoogleAuth({
-  credentials: {
-    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-  },
-  scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-});
+// Check if Google Sheets is properly configured
+const isGoogleSheetsConfigured = () => {
+  return !!(
+    process.env.GOOGLE_SHEET_ID &&
+    process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL &&
+    process.env.GOOGLE_PRIVATE_KEY
+  );
+};
 
-const sheets = google.sheets({ version: 'v4', auth });
+// Initialize Google Sheets API only if properly configured
+let sheets: any = null;
+let auth: any = null;
+
+if (isGoogleSheetsConfigured()) {
+  try {
+    auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    sheets = google.sheets({ version: 'v4', auth });
+    console.log('Google Sheets API initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize Google Sheets API:', error);
+    sheets = null;
+  }
+} else {
+  console.log('Google Sheets not configured - skipping initialization');
+}
 
 // Your Google Sheet ID (you'll get this from the sheet URL)
 const SPREADSHEET_ID = process.env.GOOGLE_SHEET_ID;
@@ -51,8 +73,8 @@ export interface BookingData {
 }
 
 export async function addInquiryToSheet(data: InquiryData): Promise<void> {
-  if (!SPREADSHEET_ID) {
-    console.error('Google Sheet ID not configured');
+  if (!isGoogleSheetsConfigured() || !sheets || !SPREADSHEET_ID) {
+    console.log('Google Sheets not configured - skipping inquiry data');
     return;
   }
 
@@ -87,8 +109,8 @@ export async function addInquiryToSheet(data: InquiryData): Promise<void> {
 }
 
 export async function addBookingToSheet(data: BookingData): Promise<void> {
-  if (!SPREADSHEET_ID) {
-    console.error('Google Sheet ID not configured');
+  if (!isGoogleSheetsConfigured() || !sheets || !SPREADSHEET_ID) {
+    console.log('Google Sheets not configured - skipping booking data');
     return;
   }
 

@@ -42,6 +42,17 @@ export default function InquiryModal({ isOpen, onClose, packageData }: InquiryMo
     e.preventDefault();
     setIsSubmitting(true);
 
+    // Debug: Log form data
+    console.log('Submitting form data:', {
+      packageId: packageData.packageId,
+      packageName: packageData.packageName,
+      packagePrice: packageData.price,
+      packageDates: packageData.dates,
+      packageDuration: packageData.duration,
+      ...formData,
+      submittedAt: new Date().toISOString()
+    });
+
     try {
       const response = await fetch('/api/inquiries', {
         method: 'POST',
@@ -57,9 +68,17 @@ export default function InquiryModal({ isOpen, onClose, packageData }: InquiryMo
         })
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
       if (!response.ok) {
-        throw new Error('Failed to submit inquiry');
+        const errorText = await response.text();
+        console.error('Response error:', errorText);
+        throw new Error(`Failed to submit inquiry: ${response.status}`);
       }
+
+      const result = await response.json();
+      console.log('Success response:', result);
 
       alert('Thank you for your inquiry! We will contact you within 24 hours.');
       onClose();
