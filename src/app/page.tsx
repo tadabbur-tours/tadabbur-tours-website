@@ -85,7 +85,7 @@ export default function Home() {
       id: 'december',
       name: 'December Umrah',
       price: '$3,750',
-      duration: '12 days',
+      duration: '10 days',
       dates: 'December 20-31, 2026',
       status: 'standard',
       soldOut: false
@@ -248,7 +248,9 @@ export default function Home() {
                 alt="Tadabbur Logo" 
                 width={isScrolled ? 80 : 100} 
                 height={isScrolled ? 80 : 100} 
-                className="transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
+                className={`transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${
+                  isScrolled ? '' : 'brightness-0 invert'
+                }`}
                 style={{ width: 'auto', height: 'auto' }}
               />
               {isScrolled && (
@@ -400,13 +402,13 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <button 
                 onClick={() => scrollToSection('taf-seerah')}
-                className="inline-flex items-center justify-center px-8 py-4 border-2 border-white text-white rounded-full font-semibold text-lg hover:bg-white hover:text-stone-800 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                className="inline-flex items-center justify-center px-8 py-4 border-2 border-white text-white rounded-full font-semibold text-lg hover:bg-white hover:text-stone-800 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 w-full sm:w-auto min-w-[220px]"
               >
                 Discover the Journey
               </button>
               <button 
                 onClick={() => scrollToSection('packages')}
-                className="inline-flex items-center justify-center px-8 py-4 bg-white text-stone-800 rounded-full font-semibold text-lg hover:bg-stone-100 hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                className="inline-flex items-center justify-center px-8 py-4 bg-white text-stone-800 rounded-full font-semibold text-lg hover:bg-stone-100 hover:shadow-xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 w-full sm:w-auto min-w-[220px]"
               >
                 View Packages
               </button>
@@ -416,9 +418,9 @@ export default function Home() {
 
         {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-white/70 rounded-full mt-2 animate-pulse"></div>
-          </div>
+          <svg className="w-8 h-8 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+          </svg>
         </div>
       </section>
 
@@ -434,11 +436,11 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-20">
             <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-stone-800 via-stone-700 to-stone-600 bg-clip-text text-transparent">
-              Taf-Seerah Trips
+              The Taf-Seerah Umrah Experience
             </h2>
             <div className="w-40 h-1 bg-gradient-to-r from-stone-400 via-stone-500 to-stone-600 mx-auto rounded-full mb-6"></div>
             <p className="text-xl md:text-2xl text-stone-600 max-w-3xl mx-auto leading-relaxed">
-              Transformative spiritual journeys that connect you with the essence of Islam
+            Our flagship trip isn’t just about visiting sacred places, it’s about living the story of the Prophet (SAW) through the Qur’an.
             </p>
           </div>
           
@@ -446,8 +448,12 @@ export default function Home() {
             {packages.map((pkg, index) => (
               <div 
                 key={pkg.id} 
-                className={`group relative bg-white/80 backdrop-blur-md rounded-3xl p-8 border border-stone-200 hover:border-stone-300 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl ${
-                  pkg.soldOut ? 'opacity-75' : 'hover:bg-white/90'
+                className={`group relative backdrop-blur-md rounded-3xl p-8 border border-stone-200 hover:border-stone-300 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl ${
+                  pkg.id === 'january' 
+                    ? 'bg-white/50' 
+                    : pkg.soldOut 
+                    ? 'bg-white/80 opacity-75' 
+                    : 'bg-white/80 hover:bg-white/90'
                 } ${pkg.status === 'premium' ? 'ring-2 ring-stone-400/50' : ''}`}
                 style={{
                   animationDelay: `${index * 200}ms`
@@ -467,7 +473,7 @@ export default function Home() {
                   <div className="absolute inset-0 bg-black/50 backdrop-blur-sm rounded-3xl flex items-center justify-center z-10">
                     <div className="text-center">
                       <div className="text-4xl mb-2">🔒</div>
-                      <div className="text-xl font-bold text-red-300">Fully Booked</div>
+                      <div className={`text-xl font-bold ${pkg.id === 'january' ? 'text-red-600' : 'text-red-300'}`}>Fully Booked</div>
                     </div>
                   </div>
                 )}
@@ -478,15 +484,21 @@ export default function Home() {
                     <span className="text-2xl">🕋</span>
                   </div>
 
-                  <h3 className="text-2xl lg:text-3xl font-bold mb-4 text-stone-800 group-hover:text-stone-700 transition-colors duration-300">
+                  <h3 className={`text-2xl lg:text-3xl font-bold mb-4 transition-colors duration-300 ${
+                    pkg.id === 'january' ? 'text-stone-900' : 'text-stone-800 group-hover:text-stone-700'
+                  }`}>
                     {pkg.name}
                   </h3>
                   
-                  <div className="text-4xl lg:text-5xl font-bold text-stone-700 mb-6 group-hover:text-stone-600 transition-colors duration-300">
+                  <div className={`text-4xl lg:text-5xl font-bold mb-6 transition-colors duration-300 ${
+                    pkg.id === 'january' ? 'text-stone-900' : 'text-stone-700 group-hover:text-stone-600'
+                  }`}>
                     {pkg.price}
                   </div>
                   
-                  <div className="space-y-3 text-stone-600 mb-8">
+                  <div className={`space-y-3 mb-8 ${
+                    pkg.id === 'january' ? 'text-stone-800' : 'text-stone-600'
+                  }`}>
                     <div className="flex items-center justify-center space-x-2">
                       <span className="text-stone-500">📅</span>
                       <span><strong>Duration:</strong> {pkg.duration}</span>
@@ -498,7 +510,7 @@ export default function Home() {
                     {!pkg.soldOut && (
                       <div className="flex items-center justify-center space-x-2">
                         <span className="text-stone-500">✨</span>
-                        <span className="text-sm">Premium accommodations & guided tours</span>
+                        <span className="text-sm">A Premium Experience at a Competitive Price</span>
                       </div>
                     )}
                   </div>
@@ -533,7 +545,7 @@ export default function Home() {
 
           {/* Call to Action */}
           <div className="text-center mt-16">
-            <p className="text-xl text-stone-600 mb-6">Ready to begin your spiritual journey?</p>
+            <p className="text-xl text-stone-600 mb-6">Wondering if this experience is right for you?</p>
             <button 
               onClick={() => scrollToSection('contact')}
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-stone-600 to-stone-700 text-white rounded-full font-bold text-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
@@ -550,7 +562,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-stone-700 to-stone-800 bg-clip-text text-transparent">
-              What Our Travelers Say
+            Here’s What Our Attendees Say:
             </h2>
             <div className="w-32 h-1 bg-gradient-to-r from-stone-400 to-stone-600 mx-auto rounded-full"></div>
           </div>
@@ -574,17 +586,18 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-stone-700 to-stone-800 bg-clip-text text-transparent">
-              About Tadabbur Tours
+              About Tadabbur Tours:
             </h2>
             <div className="w-32 h-1 bg-gradient-to-r from-stone-400 to-stone-600 mx-auto rounded-full"></div>
           </div>
           
           <div className="max-w-4xl mx-auto text-center">
             <div className="space-y-6 text-lg text-stone-700 leading-relaxed">
-              <p>Experience Umrah in a way that transcends the ordinary. Join Tadabbur Tours on an unforgettable journey to the sacred lands where the Qur&apos;an was revealed.</p>
-              <p>This isn&apos;t just a pilgrimage; it&apos;s an opportunity to reconnect with the essence of your faith, immerse yourself in the teachings of the Qur&apos;an, and walk in the footsteps of the Prophet Muhammad (SAW).</p>
-              <p>Our unique approach focuses on studying the Qur&apos;an in the very land where it was revealed, allowing you to absorb its meanings and significance like never before. Through detailed reflections on the Seerah, you&apos;ll gain insights that will enrich your spiritual experience.</p>
-              <p>Don&apos;t miss this opportunity to embark on a journey that could transform your life. Spaces are limited.</p>
+              <p>Tadabbur Tours is a tour operator leading immersive Qur&apos;an-inspired journeys. Our flagship trip, the Taf-Seerah Umrah Experience, isn&apos;t just about visiting sacred places, it&apos;s about living the story of the Prophet (ﷺ) through the Qur&apos;an.</p>
+              <p>We ensure that your journey with us starts before takeoff through prep sessions, guides, and reflections - and continues after you return, so the experience truly lasts. We handle all the details so you can focus on what truly matters: reflection, connection, and transformation.</p>
+              <p className="text-2xl md:text-3xl font-bold text-stone-800 mt-8 pt-6 border-t border-stone-300">
+                We don&apos;t just take you to Umrah. We take you through the Qur&apos;an.
+              </p>
             </div>
           </div>
         </div>
@@ -595,7 +608,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-stone-800 to-stone-700 bg-clip-text text-transparent">
-              Taf-Seerah Umrah
+              The Experience
             </h2>
             <div className="w-32 h-1 bg-gradient-to-r from-stone-400 to-stone-600 mx-auto rounded-full"></div>
           </div>
@@ -606,9 +619,9 @@ export default function Home() {
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
                 { icon: '📖', title: 'Deepen Your Connection with the Qur\'an', desc: 'Study the Qur\'an in the very land where it was revealed, allowing you to absorb its meanings and significance like never before.' },
-                { icon: '🕌', title: 'Learn from the Seerah', desc: 'Let the life and teachings of the Prophet Muhammad (SAW) guide your journey through detailed reflections that enrich your experience.' },
-                { icon: '🤲', title: 'Personalized Spiritual Guidance', desc: 'Our knowledgeable guides are with you every step of the way, offering personalized support and spiritual insights.' },
-                { icon: '✨', title: 'Reflect and Revitalize', desc: 'Away from the hustle and bustle, reflect deeply, reconnect with your faith, and return home spiritually revitalized.' }
+                { icon: '🕌', title: 'Learn from the Seerah', desc: 'Experience the Seerah come to life as you walk the path of the Prophet Muhammad (SAW) and reflect on his timeless message.' },
+                { icon: '🤲', title: 'Guided Tours', desc: 'We guide you through the story as it unfolded, in the lands where they first took place.' },
+                { icon: '✨', title: 'Reconnect and Transform', desc: 'Rediscover your purpose through reflection, revelation, and transformation.' }
               ].map((feature, index) => (
                 <div key={index} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-stone-200 hover:shadow-xl transition-all">
                   <div className="text-4xl mb-4">{feature.icon}</div>
@@ -622,14 +635,46 @@ export default function Home() {
           {/* What's Included */}
           <div>
             <h3 className="text-2xl font-bold mb-8 text-center text-stone-800">What&apos;s Included</h3>
-            <p className="text-center text-stone-600 mb-12">Everything you need for a complete spiritual journey</p>
+            <p className="text-center text-stone-600 mb-12 text-lg">Everything you need for a complete spiritual journey</p>
             
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
-                { icon: '✈️', title: 'Travel & Accommodation', items: ['Airfare', '5-Star Hotels', 'Visa Processing'] },
-                { icon: '🕌', title: 'Spiritual Experience', items: ['Guided Ziyarat', 'Rawdah Experience', 'Jummah Prayers'] },
-                { icon: '📚', title: 'Learning & Guidance', items: ['Umrah Guidebook', 'Tadabbur Circles', 'Spiritual Guidance'] },
-                { icon: '🍽️', title: 'Meals & Transportation', items: ['Transportation', 'Daily Breakfast', 'Ihram'] }
+                { 
+                  icon: '✈️', 
+                  title: 'Travel & Accommodation', 
+                  items: [
+                    { name: 'Airfare', desc: 'Flights to & from MSP (or your preferred airport)' },
+                    { name: '5-Star Hotels', desc: 'Walking distance from the Haramain' },
+                    { name: 'Visa Processing', desc: 'Multiple entry 1 year visa' }
+                  ] 
+                },
+                { 
+                  icon: '🕌', 
+                  title: 'Spiritual Experience', 
+                  items: [
+                    { name: 'Rawdah Access', desc: 'Experience a piece of Jannah' },
+                    { name: 'Qiyam', desc: 'Reconnect with Allah with group-led Qiyam at night' },
+                    { name: 'Jummah Prayers', desc: 'Offer your Jummah Prayer at both Haramain' }
+                  ] 
+                },
+                { 
+                  icon: '📚', 
+                  title: 'Learning & Guidance', 
+                  items: [
+                    { name: 'Umrah Guidebook', desc: 'A step-by-step guide that details everything you need to know' },
+                    { name: 'Tadabbur Circles', desc: 'An opportunity to slow down & reflect on the experience' },
+                    { name: 'Guided Ziyarat', desc: 'You don\'t just visit the location, you also get the story' }
+                  ] 
+                },
+                { 
+                  icon: '🍽️', 
+                  title: 'Comfort & Convenience', 
+                  items: [
+                    { name: 'Transportation', desc: 'VIP buses to & from every location' },
+                    { name: 'Daily breakfast', desc: '5-star complimentary breakfast buffet' },
+                    { name: 'Ihram & Hijab', desc: 'Men are gifted an Ihram while women are gifted a Hijab' }
+                  ] 
+                }
               ].map((category, index) => (
                 <div key={index} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-stone-200">
                   <div className="flex items-center mb-4">
@@ -639,8 +684,8 @@ export default function Home() {
                   <div className="space-y-3">
                     {category.items.map((item, itemIndex) => (
                       <div key={itemIndex} className="text-stone-600">
-                        <h5 className="font-semibold text-stone-800">{item}</h5>
-                        <p className="text-sm text-stone-500">Comprehensive service included</p>
+                        <h5 className="font-semibold text-stone-800">{item.name}</h5>
+                        <p className="text-sm text-stone-500">{item.desc}</p>
                       </div>
                     ))}
                   </div>
@@ -733,7 +778,7 @@ export default function Home() {
 
           {/* Photo Gallery Slideshow */}
           <div className="mb-16">
-            <h3 className="text-3xl font-bold mb-12 text-center text-stone-800">Our Journey Gallery</h3>
+            <h3 className="text-3xl font-bold mb-12 text-center text-stone-800">Captured Moments</h3>
             <div className="relative max-w-6xl mx-auto">
               <div className="relative h-[500px] lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl group cursor-pointer" onClick={() => setLightboxImage(slides[currentSlide])}>
                 <Image 
@@ -808,7 +853,7 @@ export default function Home() {
             
             {/* Flickr Link */}
             <div className="text-center mt-12">
-              <p className="text-stone-600 mb-6 text-lg">Experience the beauty and spirituality of our sacred journeys through our comprehensive photo collection.</p>
+              <p className="text-stone-600 mb-6 text-lg">A view into the smiles, sights, and moments that touched our hearts.</p>
               <a 
                 href="https://flic.kr/s/aHBqjC18Bk" 
                 target="_blank" 
@@ -840,7 +885,7 @@ export default function Home() {
             </h2>
             <div className="w-40 h-1 bg-gradient-to-r from-stone-400 via-stone-500 to-stone-600 mx-auto rounded-full mb-6"></div>
             <p className="text-xl md:text-2xl text-stone-700 max-w-3xl mx-auto leading-relaxed">
-              Ready to embark on your spiritual journey? Get in touch with us today and let&apos;s make your dream Umrah a reality.
+              Still have questions? Get in touch with us today - where we&apos;ll handle the details so you can focus on the experience.
             </p>
           </div>
           
@@ -851,14 +896,20 @@ export default function Home() {
               <div className="space-y-8">
                 {[
                   { icon: '📧', title: 'Email', info: 'info@tadabburtours.com', description: 'Send us your questions anytime' },
-                  { icon: '🌐', title: 'Website', info: 'ask.tadabburtours.com', description: 'Visit our knowledge base' },
-                  { icon: '📱', title: 'Phone', info: '+1 (555) 123-4567', description: 'Call us for immediate assistance' }
+                  { icon: '📱', title: 'Phone', info: '+1 (555) 123-4567', description: 'Call us for immediate assistance' },
+                  { icon: '📷', title: 'Instagram', info: '@tadabburtours', description: 'Follow us for updates and journey highlights', link: 'https://instagram.com/tadabburtours' }
                 ].map((contact, index) => (
-                  <div key={index} className="group flex items-start p-6 bg-white/60 backdrop-blur-sm rounded-2xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                  <div key={index} className={`group flex items-start p-6 bg-white/60 backdrop-blur-sm rounded-2xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${contact.link ? 'cursor-pointer' : ''}`} onClick={contact.link ? () => window.open(contact.link, '_blank', 'noopener,noreferrer') : undefined}>
                     <div className="text-3xl mr-6 group-hover:scale-110 transition-transform duration-300">{contact.icon}</div>
                     <div>
                       <h4 className="font-bold text-stone-800 text-lg mb-1">{contact.title}</h4>
-                      <p className="text-stone-700 font-semibold text-lg mb-1">{contact.info}</p>
+                      {contact.link ? (
+                        <a href={contact.link} target="_blank" rel="noopener noreferrer" className="text-stone-700 font-semibold text-lg mb-1 hover:text-amber-600 transition-colors">
+                          {contact.info}
+                        </a>
+                      ) : (
+                        <p className="text-stone-700 font-semibold text-lg mb-1">{contact.info}</p>
+                      )}
                       <p className="text-stone-600">{contact.description}</p>
                     </div>
                   </div>

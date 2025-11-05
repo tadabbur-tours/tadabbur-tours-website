@@ -71,13 +71,17 @@ export async function POST(request: NextRequest) {
       ];
     }
 
+    // Calculate deposit per person
+    const depositPerPerson = 750; // $750 per person
+    const totalDeposit = depositPerPerson * participantCount;
+    const baseAmount = totalDeposit * 100; // Total deposit in cents
+    
     // Calculate Stripe processing fees
-    // Stripe fees: 2.9% + $0.30 for cards, 0.8% for ACH (capped at $5)
-    const baseAmount = 75000; // $750 in cents
+    // Stripe fees: 2.9% + $0.30 for cards, 0.8% for ACH (capped at $5 per transaction, but we'll calculate on total deposit)
     const cardFeeRate = 0.029; // 2.9%
     const cardFixedFee = 30; // $0.30 in cents
     const achFeeRate = 0.008; // 0.8%
-    const achMaxFee = 500; // $5.00 in cents
+    const achMaxFee = 500; // $5.00 in cents (per transaction, but we apply to total)
     
     // Calculate fees based on payment method
     let processingFee = 0;
@@ -100,7 +104,7 @@ export async function POST(request: NextRequest) {
             name: `${packageName} - Deposit`,
             description: `Deposit for ${participantCount} ${participantCount === 1 ? 'person' : 'people'}. Installments will be sent separately.`,
           },
-          unit_amount: baseAmount, // $750 in cents
+          unit_amount: baseAmount, // Total deposit in cents (per person × participant count)
         },
         quantity: 1,
       },
@@ -146,10 +150,12 @@ export async function POST(request: NextRequest) {
         buyerEmail: buyerInfo.email,
         buyerPhone: buyerInfo.phone,
         installmentDates: installmentDates.map(date => date.toISOString()).join(','),
-        totalAmount: totalChargeAmount.toString(),
-        depositAmount: baseAmount.toString(), // $750 in cents
+        // Calculate total package price
+        totalPackagePrice: ((spots.dual * 4200 + spots.triple * 3950 + spots.quad * 3750) * 100).toString(), // Total package in cents
+        totalAmount: totalChargeAmount.toString(), // Deposit + processing fee in cents
+        depositAmount: baseAmount.toString(), // Total deposit in cents (per person × participant count)
         processingFee: processingFee.toString(),
-        remainingAmount: (totalChargeAmount - baseAmount).toString(),
+        remainingAmount: ((spots.dual * 4200 + spots.triple * 3950 + spots.quad * 3750) * 100 - baseAmount).toString(), // Total package - deposit in cents
         paymentType: 'deposit_only',
         paymentMethod: paymentMethod
       },

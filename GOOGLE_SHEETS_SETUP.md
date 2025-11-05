@@ -71,7 +71,7 @@ Add these to your `.env.local` file:
 
 ```env
 # Google Sheets Configuration
-GOOGLE_SHEET_ID=1AeEiZ0WbtKzP0S_jSYCqaAKrrI4G5qr2IVMQUdPpfF4/edit?gid=0#gid=0
+GOOGLE_SHEET_ID=your_sheet_id_here
 GOOGLE_SERVICE_ACCOUNT_EMAIL=your_service_account_email@project.iam.gserviceaccount.com
 GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nYOUR_PRIVATE_KEY_HERE\n-----END PRIVATE KEY-----\n"
 ```

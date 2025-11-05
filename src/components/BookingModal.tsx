@@ -49,9 +49,9 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
   });
 
   const roomOptions = [
-    { type: 'dual', price: '$4,200', priceNum: 4200, capacity: 2, description: 'Shared room with 1 other person' },
+    { type: 'quad', price: '$3,750', priceNum: 3750, capacity: 4, description: 'Shared room with 3 other people' },
     { type: 'triple', price: '$3,950', priceNum: 3950, capacity: 3, description: 'Shared room with 2 other people' },
-    { type: 'quad', price: '$3,750', priceNum: 3750, capacity: 4, description: 'Shared room with 3 other people' }
+    { type: 'dual', price: '$4,200', priceNum: 4200, capacity: 2, description: 'Shared room with 1 other person' }
   ];
 
   const steps = [
@@ -78,6 +78,21 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
   // Helper function to calculate total spots
   const getTotalSpots = () => {
     return formData.spots.dual + formData.spots.triple + formData.spots.quad;
+  };
+
+  // Helper function to format phone number as xxx-xxx-xxxx
+  const formatPhoneNumber = (value: string): string => {
+    // Remove all non-numeric characters
+    const phoneNumber = value.replace(/\D/g, '');
+    
+    // Limit to 10 digits
+    const limited = phoneNumber.slice(0, 10);
+    
+    // Format as xxx-xxx-xxxx
+    if (limited.length === 0) return '';
+    if (limited.length <= 3) return limited;
+    if (limited.length <= 6) return `${limited.slice(0, 3)}-${limited.slice(3)}`;
+    return `${limited.slice(0, 3)}-${limited.slice(3, 6)}-${limited.slice(6)}`;
   };
 
   // Auto-update participant count when spots change
@@ -305,7 +320,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             packageId: packageData.packageId,
-            packageName: packageData.packageName,
+              packageName: packageData.packageName,
             spots: formData.spots,
             buyerInfo: formData.buyerInfo,
             participants: formData.participants,
@@ -343,6 +358,14 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
     const quadTotal = formData.spots.quad * 3750;
     const totalPrice = dualTotal + tripleTotal + quadTotal;
     return `$${totalPrice.toLocaleString()}`;
+  };
+
+  const getSelectedRoomPriceNumber = () => {
+    // Price is per spot (per person)
+    const dualTotal = formData.spots.dual * 4200;
+    const tripleTotal = formData.spots.triple * 3950;
+    const quadTotal = formData.spots.quad * 3750;
+    return dualTotal + tripleTotal + quadTotal;
   };
 
   return (
@@ -567,9 +590,13 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                             <input
                               type="tel"
                               value={participant.phone}
-                              onChange={(e) => handleParticipantChange(index, 'phone', e.target.value)}
+                              onChange={(e) => {
+                                const formatted = formatPhoneNumber(e.target.value);
+                                handleParticipantChange(index, 'phone', formatted);
+                              }}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500"
-                              placeholder="Enter phone number"
+                              placeholder="xxx-xxx-xxxx"
+                              maxLength={12}
                               required
                             />
                           </div>
@@ -756,9 +783,13 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                   <input
                     type="tel"
                     value={formData.buyerInfo.phone}
-                    onChange={(e) => handleInputChange('buyerInfo.phone', e.target.value)}
+                    onChange={(e) => {
+                      const formatted = formatPhoneNumber(e.target.value);
+                      handleInputChange('buyerInfo.phone', formatted);
+                    }}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500"
-                    placeholder="Enter phone number"
+                    placeholder="xxx-xxx-xxxx"
+                    maxLength={12}
                     required
                   />
                 </div>
@@ -775,40 +806,72 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                 {/* Payment Schedule Summary */}
                 <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-xl p-6">
                   <h4 className="font-semibold text-gray-900 mb-4">Payment Schedule</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Deposit (Today):</span>
-                      <span className="font-semibold text-emerald-600">$750.00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Processing Fee:</span>
-                      <span className="font-semibold text-gray-600">
-                        {formData.paymentMethod === 'bank_transfer' ? '$6.00' : '$22.05'}
-                      </span>
-                    </div>
-                    <div className="border-t border-gray-200 pt-1 flex justify-between font-semibold">
-                      <span>Total Today:</span>
-                      <span className="text-emerald-600">
-                        {formData.paymentMethod === 'bank_transfer' ? '$756.00' : '$772.05'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Installment 1:</span>
-                      <span className="font-semibold">$1,000.00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Installment 2:</span>
-                      <span className="font-semibold">$1,000.00</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Installment 3:</span>
-                      <span className="font-semibold">$1,000.00</span>
-                    </div>
-                    <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
-                      <span>Total Package:</span>
-                      <span className="text-emerald-600">{getSelectedRoomPrice()}</span>
-                    </div>
-                  </div>
+                  {(() => {
+                    const totalPackage = getSelectedRoomPriceNumber();
+                    const totalPeople = getTotalSpots();
+                    const depositPerPerson = 750;
+                    const totalDeposit = depositPerPerson * totalPeople;
+                    const remaining = totalPackage - totalDeposit;
+                    const installmentAmount = Math.round((remaining / 3) * 100) / 100; // Round to 2 decimals
+                    
+                    // Calculate processing fee on total deposit
+                    const baseAmount = totalDeposit * 100; // Convert to cents
+                    const cardFeeRate = 0.029; // 2.9%
+                    const cardFixedFee = 30; // $0.30 in cents
+                    const achFeeRate = 0.008; // 0.8%
+                    const achMaxFee = 500; // $5.00 in cents
+                    
+                    let processingFeeCents = 0;
+                    if (formData.paymentMethod === 'bank_transfer') {
+                      processingFeeCents = Math.min(Math.round(baseAmount * achFeeRate), achMaxFee);
+                    } else {
+                      processingFeeCents = Math.round(baseAmount * cardFeeRate) + cardFixedFee;
+                    }
+                    const processingFee = processingFeeCents / 100; // Convert back to dollars
+                    
+                    const totalToday = totalDeposit + processingFee;
+                    // Adjust last installment to account for rounding
+                    const installment1 = installmentAmount;
+                    const installment2 = installmentAmount;
+                    const installment3 = totalPackage - totalDeposit - installment1 - installment2; // Ensure exact total
+                    
+                    return (
+                      <div className="space-y-2 text-sm text-gray-900">
+                        <div className="flex justify-between">
+                          <span className="text-gray-900">Deposit (Today):</span>
+                          <span className="font-semibold text-gray-900">${totalDeposit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-900">Processing Fee:</span>
+                          <span className="font-semibold text-gray-900">
+                            ${processingFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <div className="border-t border-gray-200 pt-1 flex justify-between font-semibold">
+                          <span className="text-gray-900">Total Today:</span>
+                          <span className="text-gray-900">
+                            ${totalToday.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-900">Installment 1:</span>
+                          <span className="font-semibold text-gray-900">${installment1.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-900">Installment 2:</span>
+                          <span className="font-semibold text-gray-900">${installment2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-900">Installment 3:</span>
+                          <span className="font-semibold text-gray-900">${installment3.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
+                          <span className="text-gray-900">Total Package:</span>
+                          <span className="text-gray-900">{getSelectedRoomPrice()}</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Payment Method Options */}
@@ -841,7 +904,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                           <div className="w-2 h-2 bg-white rounded-full"></div>
                         )}
                       </div>
-                    </div>
+                </div>
                     
                     {formData.paymentMethod === 'stripe' && (
                       <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -849,7 +912,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                           <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
                           </svg>
-                          <div>
+                <div>
                             <h6 className="font-medium text-blue-800 mb-1">How it works:</h6>
                             <ul className="text-xs text-blue-700 space-y-1">
                               <li>• Pay your $750 deposit today to secure your booking</li>
@@ -972,7 +1035,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                     <div className="flex-1">
                       <label htmlFor="termsAccepted" className="text-sm font-medium text-gray-900 cursor-pointer">
                         I have read and agree to the Terms & Conditions
-                      </label>
+                  </label>
                       <p className="text-xs text-gray-600 mt-1">
                         By checking this box, you acknowledge that you have read, understood, and agree to be bound by the terms and conditions outlined in the contract above.
                       </p>
@@ -1000,81 +1063,107 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
           )}
 
           {/* Step 5: Payment */}
-          {currentStep === 5 && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Complete Your Payment</h3>
-              
-              <div className="text-center py-8">
-                <div className="mb-8">
-                  <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
-                    formData.paymentMethod === 'stripe' ? 'bg-emerald-100' : 'bg-amber-100'
-                  }`}>
-                    <span className="text-2xl">{formData.paymentMethod === 'stripe' ? '💳' : '🏦'}</span>
-                  </div>
-                  <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                    {formData.paymentMethod === 'stripe' ? 'Ready to Pay Your Deposit' : 'Bank Transfer Instructions'}
-                  </h4>
-                  <p className="text-gray-600 mb-6">
-                    {formData.paymentMethod === 'stripe' 
-                      ? 'Click the button below to securely pay your $750 deposit and set up your installment plan.'
-                      : 'We\'ll send you bank transfer details after booking confirmation. Please pay your $750 deposit within 48 hours.'
-                    }
-                  </p>
-                  
-                  <div className="bg-gray-50 rounded-lg p-6 mb-6 max-w-md mx-auto">
-                    <h5 className="font-semibold text-gray-900 mb-3">Payment Summary</h5>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Deposit (Today):</span>
-                        <span className="font-semibold text-emerald-600">$750.00</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Processing Fee:</span>
-                        <span className="font-semibold text-gray-600">
-                          {formData.paymentMethod === 'bank_transfer' ? '$6.00' : '$22.05'}
-                        </span>
-                      </div>
-                      <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
-                        <span>Total Today:</span>
-                        <span className="text-emerald-600">
-                          {formData.paymentMethod === 'bank_transfer' ? '$756.00' : '$772.05'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Future Installments:</span>
-                        <span className="font-semibold">$3,000.00</span>
-                      </div>
-                      <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
-                        <span>Total Package:</span>
-                        <span className="text-emerald-600">{getSelectedRoomPrice()}</span>
+          {currentStep === 5 && (() => {
+            // Calculate payment amounts
+            const totalPackage = getSelectedRoomPriceNumber();
+            const totalPeople = getTotalSpots();
+            const depositPerPerson = 750;
+            const totalDeposit = depositPerPerson * totalPeople;
+            const remaining = totalPackage - totalDeposit;
+            
+            // Calculate processing fee on total deposit
+            const baseAmount = totalDeposit * 100; // Convert to cents
+            const cardFeeRate = 0.029; // 2.9%
+            const cardFixedFee = 30; // $0.30 in cents
+            const achFeeRate = 0.008; // 0.8%
+            const achMaxFee = 500; // $5.00 in cents
+            
+            let processingFeeCents = 0;
+            if (formData.paymentMethod === 'bank_transfer') {
+              processingFeeCents = Math.min(Math.round(baseAmount * achFeeRate), achMaxFee);
+            } else {
+              processingFeeCents = Math.round(baseAmount * cardFeeRate) + cardFixedFee;
+            }
+            const processingFee = processingFeeCents / 100; // Convert back to dollars
+            
+            const totalToday = totalDeposit + processingFee;
+            
+            return (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Complete Your Payment</h3>
+                
+                <div className="text-center py-8">
+                  <div className="mb-8">
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                      formData.paymentMethod === 'stripe' ? 'bg-emerald-100' : 'bg-amber-100'
+                    }`}>
+                      <span className="text-2xl">{formData.paymentMethod === 'stripe' ? '💳' : '🏦'}</span>
+                    </div>
+                    <h4 className="text-xl font-semibold text-gray-900 mb-2">
+                      {formData.paymentMethod === 'stripe' ? 'Ready to Pay Your Deposit' : 'Bank Transfer Instructions'}
+                    </h4>
+                    <p className="text-gray-600 mb-6">
+                      {formData.paymentMethod === 'stripe' 
+                        ? `Click the button below to securely pay your $${totalDeposit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} deposit and set up your installment plan.`
+                        : `We'll send you bank transfer details after booking confirmation. Please pay your $${totalDeposit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} deposit within 48 hours.`
+                      }
+                    </p>
+                    
+                    <div className="bg-gray-50 rounded-lg p-6 mb-6 max-w-md mx-auto">
+                      <h5 className="font-semibold text-gray-900 mb-3">Payment Summary</h5>
+                      <div className="space-y-2 text-sm text-gray-900">
+                        <div className="flex justify-between">
+                          <span className="text-gray-900">Deposit (Today):</span>
+                          <span className="font-semibold text-gray-900">${totalDeposit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-900">Processing Fee:</span>
+                          <span className="font-semibold text-gray-900">
+                            ${processingFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
+                          <span className="text-gray-900">Total Today:</span>
+                          <span className="text-gray-900">
+                            ${totalToday.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-900">Future Installments:</span>
+                          <span className="font-semibold text-gray-900">${remaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        </div>
+                        <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
+                          <span className="text-gray-900">Total Package:</span>
+                          <span className="text-gray-900">{getSelectedRoomPrice()}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
+                  
+                  {isLoadingPayment ? (
+                    <div className="flex items-center justify-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600"></div>
+                      <span className="ml-3 text-gray-600">Redirecting to secure payment...</span>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={createStripeCheckout}
+                      className="w-full max-w-md bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-4 px-8 rounded-lg font-semibold text-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+                    >
+                      Pay ${totalToday.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Now
+                    </button>
+                  )}
+                  
+                  <p className="text-xs text-gray-500 mt-4">
+                    {formData.paymentMethod === 'stripe' 
+                      ? 'You\'ll be redirected to Stripe\'s secure payment page with card options'
+                      : 'You\'ll be redirected to Stripe\'s secure payment page with bank transfer options (ACH, wire transfer, etc.)'
+                    }
+                  </p>
                 </div>
-                
-                {isLoadingPayment ? (
-                  <div className="flex items-center justify-center py-4">
-                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-emerald-600"></div>
-                    <span className="ml-3 text-gray-600">Redirecting to secure payment...</span>
-                  </div>
-                ) : (
-                  <button
-                    onClick={createStripeCheckout}
-                    className="w-full max-w-md bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-4 px-8 rounded-lg font-semibold text-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-xl"
-                  >
-                    Pay {formData.paymentMethod === 'bank_transfer' ? '$756.00' : '$772.05'} Now
-                  </button>
-                )}
-                
-                <p className="text-xs text-gray-500 mt-4">
-                  {formData.paymentMethod === 'stripe' 
-                    ? 'You\'ll be redirected to Stripe\'s secure payment page with card options'
-                    : 'You\'ll be redirected to Stripe\'s secure payment page with bank transfer options (ACH, wire transfer, etc.)'
-                  }
-                </p>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Step 6: Summary */}
           {currentStep === 6 && (
