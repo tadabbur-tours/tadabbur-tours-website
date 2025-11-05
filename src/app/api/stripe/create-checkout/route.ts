@@ -130,7 +130,7 @@ export async function POST(request: NextRequest) {
       : ['card', 'link']; // Card and Link payments
 
     // Create Stripe Checkout session
-    const session = await stripe.checkout.sessions.create({
+    const sessionConfig: any = {
       payment_method_types: paymentMethodTypes,
       line_items: lineItems,
       mode: 'payment',
@@ -163,7 +163,15 @@ export async function POST(request: NextRequest) {
       shipping_address_collection: {
         allowed_countries: ['US', 'CA', 'GB', 'AU', 'DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'CH', 'AT', 'SE', 'NO', 'DK', 'FI', 'IE', 'PT', 'LU', 'MT', 'CY', 'EE', 'LV', 'LT', 'SI', 'SK', 'CZ', 'HU', 'PL', 'RO', 'BG', 'HR', 'GR'],
       },
-    });
+    };
+
+    // Enable promotion codes for card payments only
+    // Note: Promotion codes may not work with all payment methods (e.g., us_bank_account)
+    if (paymentMethod !== 'bank_transfer') {
+      sessionConfig.allow_promotion_codes = true;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionConfig);
 
     return NextResponse.json({ sessionId: session.id, url: session.url });
   } catch (error) {
