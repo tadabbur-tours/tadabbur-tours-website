@@ -436,7 +436,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-20">
             <h2 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-stone-800 via-stone-700 to-stone-600 bg-clip-text text-transparent">
-              The Taf-Seerah Umrah Experience
+              Our Packages
             </h2>
             <div className="w-40 h-1 bg-gradient-to-r from-stone-400 via-stone-500 to-stone-600 mx-auto rounded-full mb-6"></div>
             <p className="text-xl md:text-2xl text-stone-600 max-w-3xl mx-auto leading-relaxed">
@@ -448,7 +448,7 @@ export default function Home() {
             {packages.map((pkg, index) => (
               <div 
                 key={pkg.id} 
-                className={`group relative backdrop-blur-md rounded-3xl p-8 border border-stone-200 hover:border-stone-300 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl ${
+                className={`group relative backdrop-blur-md rounded-3xl overflow-hidden border border-stone-200 hover:border-stone-300 transition-all duration-500 transform hover:-translate-y-2 hover:shadow-2xl ${
                   pkg.id === 'january' 
                     ? 'bg-white/50' 
                     : pkg.soldOut 
@@ -459,6 +459,14 @@ export default function Home() {
                   animationDelay: `${index * 200}ms`
                 }}
               >
+                {/* Hero Section */}
+                <div className="relative h-48 bg-gradient-to-br from-sky-200 via-blue-100 to-gray-100 overflow-hidden">
+                  <div className="absolute inset-0 bg-[url('/1.jpg')] bg-cover bg-center opacity-70"></div>
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20"></div>
+                </div>
+
+                {/* Content Section */}
+                <div className="p-8">
                 {/* Premium Badge */}
                 {pkg.status === 'premium' && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
@@ -470,34 +478,32 @@ export default function Home() {
 
                 {/* Sold Out Overlay */}
                 {pkg.soldOut && (
-                  <div className="absolute inset-0 bg-black/50 backdrop-blur-sm rounded-3xl flex items-center justify-center z-10">
+                  <div className="absolute inset-0 bg-black/10 backdrop-blur-md rounded-3xl flex items-center justify-center z-10">
                     <div className="text-center">
                       <div className="text-4xl mb-2">🔒</div>
-                      <div className={`text-xl font-bold ${pkg.id === 'january' ? 'text-red-600' : 'text-red-300'}`}>Fully Booked</div>
+                      <div className={`inline-block px-6 py-3 rounded-xl bg-red-100/90 border-2 border-red-300 shadow-lg ${pkg.id === 'january' ? 'text-red-600' : 'text-red-500'}`}>
+                        <span className="text-xl font-bold">Fully Booked</span>
+                      </div>
                     </div>
                   </div>
                 )}
 
                 <div className="text-center relative z-0">
-                  {/* Package Icon */}
-                  <div className="w-16 h-16 mx-auto mb-6 bg-gradient-to-br from-stone-200/50 to-stone-300/50 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <span className="text-2xl">🕋</span>
+                  {/* Package Type */}
+                  <div className="mx-auto mb-6 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                    <span className="text-3xl font-bold tracking-wide text-stone-700">
+                      {pkg.name}
+                    </span>
                   </div>
-
-                  <h3 className={`text-2xl lg:text-3xl font-bold mb-4 transition-colors duration-300 ${
-                    pkg.id === 'january' ? 'text-stone-900' : 'text-stone-800 group-hover:text-stone-700'
-                  }`}>
-                    {pkg.name}
-                  </h3>
                   
                   <div className={`text-4xl lg:text-5xl font-bold mb-6 transition-colors duration-300 ${
-                    pkg.id === 'january' ? 'text-stone-900' : 'text-stone-700 group-hover:text-stone-600'
+                    pkg.id === 'january' ? 'text-stone-300' : 'text-stone-700 group-hover:text-stone-600'
                   }`}>
                     {pkg.price}
                   </div>
                   
                   <div className={`space-y-3 mb-8 ${
-                    pkg.id === 'january' ? 'text-stone-800' : 'text-stone-600'
+                    pkg.id === 'january' ? 'text-stone-300' : 'text-stone-600'
                   }`}>
                     <div className="flex items-center justify-center space-x-2">
                       <span className="text-stone-500">📅</span>
@@ -509,8 +515,8 @@ export default function Home() {
                     </div>
                     {!pkg.soldOut && (
                       <div className="flex items-center justify-center space-x-2">
-                        <span className="text-stone-500">✨</span>
-                        <span className="text-sm">A Premium Experience at a Competitive Price</span>
+                        <span className="text-stone-500"></span>
+                        <span className="text-sm">A premium experience at a competitive price</span>
                       </div>
                     )}
                   </div>
@@ -535,6 +541,7 @@ export default function Home() {
                   >
                     {pkg.soldOut ? 'Sold Out' : pkg.status === 'inquiry' ? 'Inquire Now' : 'Book Now'}
                   </button>
+                </div>
                 </div>
 
                 {/* Hover Effect Glow */}
@@ -562,7 +569,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-stone-700 to-stone-800 bg-clip-text text-transparent">
-            Here’s What Our Attendees Say:
+            Here’s What Our Attendees Say
             </h2>
             <div className="w-32 h-1 bg-gradient-to-r from-stone-400 to-stone-600 mx-auto rounded-full"></div>
           </div>
@@ -586,7 +593,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-stone-700 to-stone-800 bg-clip-text text-transparent">
-              About Tadabbur Tours:
+              About Tadabbur Tours
             </h2>
             <div className="w-32 h-1 bg-gradient-to-r from-stone-400 to-stone-600 mx-auto rounded-full"></div>
           </div>
@@ -595,7 +602,7 @@ export default function Home() {
             <div className="space-y-6 text-lg text-stone-700 leading-relaxed">
               <p>Tadabbur Tours is a tour operator leading immersive Qur&apos;an-inspired journeys. Our flagship trip, the Taf-Seerah Umrah Experience, isn&apos;t just about visiting sacred places, it&apos;s about living the story of the Prophet (ﷺ) through the Qur&apos;an.</p>
               <p>We ensure that your journey with us starts before takeoff through prep sessions, guides, and reflections - and continues after you return, so the experience truly lasts. We handle all the details so you can focus on what truly matters: reflection, connection, and transformation.</p>
-              <p className="text-2xl md:text-3xl font-bold text-stone-800 mt-8 pt-6 border-t border-stone-300">
+              <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-amber-600 to-amber-700 bg-clip-text text-transparent mt-8 pt-6 border-t border-stone-300">
                 We don&apos;t just take you to Umrah. We take you through the Qur&apos;an.
               </p>
             </div>
@@ -615,7 +622,7 @@ export default function Home() {
           
           {/* What We Offer */}
           <div className="mb-16">
-            <h3 className="text-2xl font-bold mb-8 text-center">What We Offer</h3>
+            <h3 className="text-3xl font-bold mb-8 text-center">What We Offer</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {[
                 { icon: '📖', title: 'Deepen Your Connection with the Qur\'an', desc: 'Study the Qur\'an in the very land where it was revealed, allowing you to absorb its meanings and significance like never before.' },
@@ -634,10 +641,10 @@ export default function Home() {
 
           {/* What's Included */}
           <div>
-            <h3 className="text-2xl font-bold mb-8 text-center text-stone-800">What&apos;s Included</h3>
-            <p className="text-center text-stone-600 mb-12 text-lg">Everything you need for a complete spiritual journey</p>
+            <h3 className="text-3xl font-bold mb-8 text-center text-stone-800">What&apos;s Included</h3>
+            <p className="text-center text-stone-600 mb-12 text-xl">Everything you need for a complete spiritual journey</p>
             
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
               {[
                 { 
                   icon: '✈️', 
@@ -676,16 +683,19 @@ export default function Home() {
                   ] 
                 }
               ].map((category, index) => (
-                <div key={index} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-stone-200">
+                <div key={index} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-stone-200 flex flex-col">
                   <div className="flex items-center mb-4">
                     <span className="text-2xl mr-3">{category.icon}</span>
                     <h4 className="text-xl font-bold text-stone-800">{category.title}</h4>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-3 flex flex-col flex-1">
                     {category.items.map((item, itemIndex) => (
-                      <div key={itemIndex} className="text-stone-600">
-                        <h5 className="font-semibold text-stone-800">{item.name}</h5>
-                        <p className="text-sm text-stone-500">{item.desc}</p>
+                      <div 
+                        key={itemIndex} 
+                        className="bg-white/60 hover:bg-white/90 border border-stone-200 hover:border-stone-300 rounded-xl p-4 transition-all duration-300 transform hover:scale-105 hover:shadow-lg cursor-pointer flex-1 flex flex-col"
+                      >
+                        <h5 className="font-semibold text-stone-800 mb-2">{item.name}</h5>
+                        <p className="text-sm text-stone-600 flex-1">{item.desc}</p>
                       </div>
                     ))}
                   </div>
