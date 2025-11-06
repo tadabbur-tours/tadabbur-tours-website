@@ -103,8 +103,8 @@ export default function Home() {
 
   const testimonials = [
     {
-      text: "I miss praying tahajjud at the rooftop and making dua in Masjid An-Nabawi.",
-      author: "— Uzair A.",
+      text: "It’s an experience I’ll cherish forever and hope to revisit, insha’Allah.",
+      author: "Abdullahi A.",
       stars: 5
     },
     {
@@ -905,7 +905,7 @@ export default function Home() {
               <h3 className="text-3xl font-bold text-stone-800 mb-8">Get in Touch</h3>
               <div className="space-y-8">
                 {[
-                  { icon: '📧', title: 'Email', info: 'info@tadabburtours.com', description: 'Send us your questions anytime' },
+                  { icon: '📧', title: 'Email', info: 'ask@tadabburtours.com', description: 'Send us your questions anytime' },
                   { icon: '📱', title: 'Phone', info: '+1 (555) 123-4567', description: 'Call us for immediate assistance' },
                   { icon: '📷', title: 'Instagram', info: '@tadabburtours', description: 'Follow us for updates and journey highlights', link: 'https://instagram.com/tadabburtours' }
                 ].map((contact, index) => (
@@ -979,19 +979,17 @@ export default function Home() {
                     </label>
                   </div>
                   <div className="relative">
-                    <select 
-                      id="package"
-                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 appearance-none bg-white"
-                    >
-                      <option value="">Select a package</option>
-                      <option value="december">December Umrah - $3,700</option>
-                      <option value="august">August Umrah - $3,300</option>
-                    </select>
+                    <input 
+                      type="text" 
+                      id="subject"
+                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900" 
+                      placeholder=" "
+                    />
                     <label 
-                      htmlFor="package"
-                      className="absolute left-4 -top-2 bg-white px-2 text-sm font-semibold text-stone-600"
+                      htmlFor="subject"
+                      className="absolute left-4 -top-2 bg-white px-2 text-sm font-semibold text-stone-600 peer-placeholder-shown:text-base peer-placeholder-shown:text-stone-400 peer-placeholder-shown:top-4 peer-focus:-top-2 peer-focus:text-sm peer-focus:text-stone-600 transition-all duration-300"
                     >
-                      Package Interest
+                      Subject
                     </label>
                   </div>
                 </div>
@@ -1008,7 +1006,7 @@ export default function Home() {
                       htmlFor="message"
                       className="absolute left-4 -top-2 bg-white px-2 text-sm font-semibold text-stone-600 peer-placeholder-shown:text-base peer-placeholder-shown:text-stone-400 peer-placeholder-shown:top-4 peer-focus:-top-2 peer-focus:text-sm peer-focus:text-stone-600 transition-all duration-300"
                     >
-                      Tell us about your spiritual journey goals...
+                      Share your question or concern with us here
                     </label>
                   </div>
                 </div>
