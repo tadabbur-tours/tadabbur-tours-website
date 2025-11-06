@@ -461,7 +461,16 @@ export default function Home() {
               >
                 {/* Hero Section */}
                 <div className="relative h-48 bg-gradient-to-br from-sky-200 via-blue-100 to-gray-100 overflow-hidden">
-                  <div className="absolute inset-0 bg-[url('/1.jpg')] bg-cover bg-center opacity-70"></div>
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center opacity-70"
+                    style={{
+                      backgroundImage: pkg.id === 'january' 
+                        ? "url('/jan.png')" 
+                        : pkg.id === 'august' 
+                        ? "url('/aug.png')" 
+                        : "url('/1.jpg')"
+                    }}
+                  ></div>
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20"></div>
                 </div>
 
@@ -598,8 +607,19 @@ export default function Home() {
             <div className="w-32 h-1 bg-gradient-to-r from-stone-400 to-stone-600 mx-auto rounded-full"></div>
           </div>
           
-          <div className="max-w-4xl mx-auto text-center">
-            <div className="space-y-6 text-lg text-stone-700 leading-relaxed">
+          <div className="max-w-4xl mx-auto">
+            {/* Team Image */}
+            <div className="mb-12 rounded-2xl overflow-hidden shadow-2xl">
+              <Image 
+                src="/team.JPG" 
+                alt="Tadabbur Tours Team" 
+                width={1200} 
+                height={800} 
+                className="w-full h-auto object-cover"
+              />
+            </div>
+            
+            <div className="text-center space-y-6 text-lg text-stone-700 leading-relaxed">
               <p>Tadabbur Tours is a tour operator leading immersive Qur&apos;an-inspired journeys. Our flagship trip, the Taf-Seerah Umrah Experience, isn&apos;t just about visiting sacred places, it&apos;s about living the story of the Prophet (ﷺ) through the Qur&apos;an.</p>
               <p>We ensure that your journey with us starts before takeoff through prep sessions, guides, and reflections - and continues after you return, so the experience truly lasts. We handle all the details so you can focus on what truly matters: reflection, connection, and transformation.</p>
               <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-amber-600 to-amber-700 bg-clip-text text-transparent mt-8 pt-6 border-t border-stone-300">
