@@ -14,6 +14,108 @@ interface BookingModalProps {
   };
 }
 
+interface ContractSection {
+  heading: string;
+  body?: string[];
+  list?: string[];
+}
+
+const CONTRACT_SECTIONS: ContractSection[] = [
+  {
+    heading: 'Umrah Trip Agreement',
+    body: [
+      '﷽',
+      'In the name of Allah, The Most Gracious, The Most Merciful.',
+      'We testify that there is no God worthy of worship except Allah, and we testify that Prophet Muhammad (peace and blessings be upon him) is His final servant and messenger.',
+      'This contract has been mutually agreed upon between Tadabbur Tours, LLC and the undersigned Participant. By signing this Agreement, the Participant acknowledges and agrees to be legally bound by the following terms and conditions.'
+    ]
+  },
+  {
+    heading: 'Trip Inclusions',
+    body: ['Tadabbur Tours agrees to provide the following services as part of the Umrah Trip package:'],
+    list: [
+      'Round-trip airfare from the designated departure location',
+      'Accommodation in a luxury hotel near the Haram',
+      'Group transportation by bus as per the itinerary',
+      'Daily buffet breakfast at the hotel',
+      'Umrah visa for participants holding a U.S. passport',
+      'Male Ihram garment',
+      'Umrah guidebook'
+    ]
+  },
+  {
+    heading: 'Exclusions',
+    body: ['The following items are not included in the Trip package and remain the sole responsibility of the Participant:'],
+    list: [
+      'Meals other than the buffet breakfast',
+      'Fees related to green cards and/or non-U.S. passports',
+      'Personal transportation outside of the group itinerary',
+      'Any personal expenses or costs not associated with the group trip'
+    ]
+  },
+  {
+    heading: 'Visa Requirements',
+    body: [
+      'Tadabbur Tours will provide a standard Saudi e-tourist visa at no additional cost for all eligible passport holders, except for those from Pakistan, India, Bangladesh, Egypt, Morocco, and Somalia.',
+      'Participants holding a U.S. green card and a passport from any of the above-listed countries, or any other country subject to Saudi visa regulations, will be required to pay an additional $100 fee for an Umrah visa.',
+      'It is the sole responsibility of the Participant to ensure that their passport and/or green card is valid and meets the necessary entry requirements for Saudi Arabia.'
+    ]
+  },
+  {
+    heading: 'Payment Schedule & Participant Responsibility',
+    body: [
+      'The Participant acknowledges and agrees to the payment schedule as presented during the registration process. Payment amounts and due dates are displayed when selecting a payment method.',
+      'All package prices are per person. If a Participant registers multiple people, they are responsible for the full payment of all individuals they registered. Each installment will reflect the total amount due for all registered participants.'
+    ]
+  },
+  {
+    heading: 'Refund Policy',
+    body: [
+      'The initial deposit is refundable until February 1, 2026. After flight tickets have been purchased, no refunds will be processed under any circumstances.',
+      'The registered participant (signee) assumes full financial responsibility for all individuals included in their booking or package.',
+      'All refunds will be issued to the original method of payment. If the original payment method is unavailable, Tadabbur Tours may issue the refund via check or bank transfer at its sole discretion.'
+    ]
+  },
+  {
+    heading: 'Media Release',
+    body: ['By joining the trip, the Participant grants Tadabbur Tours permission to use any photos or videos taken during the trip for marketing and promotional purposes. This permission is permanent and irrevocable. The Participant understands they will not receive compensation for such use and waive the right to review or approve materials before publication.']
+  },
+  {
+    heading: 'Assumption of Risk and Waiver of Liability',
+    body: ['Participant acknowledges that participation in the Trip entails inherent risks, including but not limited to illness, injury, accidents, delays, and unforeseen events. By signing this Agreement, Participant assumes all such risks and agrees to waive any claims of liability against Tadabbur Tours, its directors, officers, employees, agents, or affiliates for any injury, loss, or damage sustained during the Trip, regardless of cause, including negligence.']
+  },
+  {
+    heading: 'Indemnification and Force Majeure',
+    body: [
+      'Participant agrees to indemnify, defend, and hold harmless Tadabbur Tours, its affiliates, directors, officers, employees, and agents from any and all claims, liabilities, losses, damages, or expenses arising out of or in connection with this Agreement or the Participant’s conduct.',
+      'Tadabbur Tours is not responsible for delays, changes, or cancellations caused by events beyond its control, including natural disasters, pandemics, government restrictions, airline cancellations, strikes, war, or other unforeseen circumstances. In such events, Tadabbur Tours may cancel, reschedule, or alter the itinerary without liability, and no refunds will be provided.'
+    ]
+  },
+  {
+    heading: 'Binding Arbitration',
+    body: ['Any dispute arising out of or relating to this Agreement shall be resolved exclusively by binding arbitration pursuant to the rules of the American Arbitration Association (AAA). Arbitration shall be held in Minnesota, and the decision of the arbitrator(s) shall be final and binding. The prevailing party may recover reasonable attorneys’ fees and costs unless prohibited by law. Participant waives the right to initiate or participate in any class action lawsuits.']
+  },
+  {
+    heading: 'Covid-19 and Health Compliance',
+    body: ['Participant agrees to adhere to all health protocols required by Tadabbur Tours, airlines, hotels, or the government of Saudi Arabia, including vaccination requirements, mask mandates, or proof of a negative COVID-19 test. Tadabbur Tours is not liable for any illness or adverse health outcomes related to COVID-19 or other contagious diseases. Participant acknowledges the risk of exposure and releases Tadabbur Tours from any liability arising from such exposure.']
+  },
+  {
+    heading: 'Governing Law and Severability',
+    body: [
+      'This Agreement shall be governed by the laws of the state of Minnesota. Any action or proceeding arising out of this Agreement that is not subject to arbitration shall be brought exclusively in the state or federal courts located in Minnesota.',
+      'If any provision of this Agreement is held to be invalid or unenforceable, the remaining provisions shall continue in full force and effect.'
+    ]
+  },
+  {
+    heading: 'Entire Agreement',
+    body: ['This Agreement constitutes the entire understanding between Tadabbur Tours and Participant concerning the subject matter herein and supersedes any prior agreements or representations. This Agreement may only be amended in writing, signed by both parties.']
+  },
+  {
+    heading: 'Acknowledgement',
+    body: ['The individual agreeing to the terms and conditions of this contract does so on behalf of all attendees they registered, and confirms they have communicated these terms to each participant.']
+  }
+];
+
 export default function BookingModal({ isOpen, onClose, packageData }: BookingModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [participantCount, setParticipantCount] = useState(1);
@@ -47,6 +149,8 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
     paymentMethod: '',
     termsAccepted: false
   });
+  const [showFullContract, setShowFullContract] = useState(false);
+  const [contractSignature, setContractSignature] = useState('');
 
   const roomOptions = [
     { type: 'quad', price: '$3,750', priceNum: 3750, capacity: 4, description: 'Shared room with 3 other people' },
@@ -73,6 +177,13 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
     return () => {
       document.body.style.overflow = 'unset';
     };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setShowFullContract(false);
+      setContractSignature('');
+    }
   }, [isOpen]);
 
   // Helper function to calculate total spots
@@ -247,6 +358,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
         if (!formData.paymentMethod) errors.push('Please select a payment method');
         break;
       case 4:
+        if (!contractSignature.trim()) errors.push('Please type your full name to acknowledge the contract');
         if (!formData.termsAccepted) errors.push('You must accept the terms and conditions to continue');
         break;
       case 5:
@@ -367,6 +479,8 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
     const quadTotal = formData.spots.quad * 3750;
     return dualTotal + tripleTotal + quadTotal;
   };
+
+  const displayedContractSections = showFullContract ? CONTRACT_SECTIONS : CONTRACT_SECTIONS.slice(0, 3);
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
@@ -986,40 +1100,66 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
               <h3 className="text-lg font-semibold text-gray-900 mb-6">Terms & Conditions</h3>
               
               <div className="space-y-6">
-                {/* Contract PDF Display */}
-                <div className="border border-gray-300 rounded-lg overflow-hidden">
-                  <div className="bg-gray-50 px-4 py-3 border-b border-gray-300">
+                {/* Contract Viewer */}
+                <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                  <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
                     <h4 className="font-semibold text-gray-900">Booking Terms & Conditions</h4>
-                    <p className="text-sm text-gray-600">Please review the contract below before proceeding</p>
+                    <p className="text-sm text-gray-600">Review the summary below. Expand to read the full agreement before continuing.</p>
                   </div>
-                  
-                  {/* PDF Embed */}
-                  <div className="h-96 bg-gray-100">
-                    <iframe
-                      src="/contract.pdf"
-                      className="w-full h-full border-0"
-                      title="Booking Terms & Conditions"
-                      onError={() => {
-                        // Fallback if PDF doesn't load
-                        const iframe = document.querySelector('iframe[title="Booking Terms & Conditions"]') as HTMLIFrameElement;
-                        if (iframe) {
-                          iframe.style.display = 'none';
-                          const fallback = document.createElement('div');
-                          fallback.className = 'flex items-center justify-center h-full text-gray-500';
-                          fallback.innerHTML = `
-                            <div class="text-center">
-                              <svg class="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                              </svg>
-                              <p class="text-lg font-medium mb-2">Contract PDF Not Found</p>
-                              <p class="text-sm">Please add your contract.pdf file to the public folder</p>
-                            </div>
-                          `;
-                          iframe.parentNode?.appendChild(fallback);
-                        }
-                      }}
-                    />
+
+                  <div className={`px-6 py-6 space-y-6 ${showFullContract ? 'max-h-[38rem]' : 'max-h-[24rem]'} overflow-y-auto`}> 
+                    {displayedContractSections.map((section, index) => (
+                      <div key={index} className="space-y-2">
+                        <h5 className="text-base font-semibold text-gray-900">{section.heading}</h5>
+                        {section.body?.map((paragraph, idx) => (
+                          <p key={idx} className="text-sm text-gray-700 leading-relaxed">{paragraph}</p>
+                        ))}
+                        {section.list && (
+                          <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
+                            {section.list.map((item, idx) => (
+                              <li key={idx}>{item}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                    {!showFullContract && (
+                      <div className="text-sm text-gray-500 italic">
+                        Additional sections are available when you expand the full contract.
+                      </div>
+                    )}
                   </div>
+
+                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <span className="text-xs text-gray-500">
+                      {showFullContract ? 'You are viewing the complete contract.' : 'Previewing the opening sections of the contract.'}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowFullContract(prev => !prev)}
+                      className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold rounded-lg border border-emerald-500 text-emerald-600 hover:bg-emerald-50 transition-colors duration-200"
+                    >
+                      {showFullContract ? 'Collapse Contract' : 'Read Full Contract'}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Signature Acknowledgement */}
+                <div className="bg-white border border-emerald-200 rounded-2xl p-6 shadow-sm">
+                  <label htmlFor="contractSignature" className="block text-sm font-semibold text-emerald-800 mb-2">
+                    Type your full name to acknowledge the contract
+                  </label>
+                  <input
+                    id="contractSignature"
+                    type="text"
+                    value={contractSignature}
+                    onChange={(e) => setContractSignature(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-300 text-gray-900"
+                    placeholder="Full name as it appears on your booking"
+                  />
+                  <p className="text-xs text-emerald-700 mt-2">
+                    By typing your full name you confirm that you have read and understand the agreement on behalf of all attendees in your booking.
+                  </p>
                 </div>
 
                 {/* Terms Acceptance */}
@@ -1028,16 +1168,16 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                     <input
                       type="checkbox"
                       id="termsAccepted"
-                      checked={formData.termsAccepted}
-                      onChange={(e) => handleInputChange('termsAccepted', e.target.checked.toString())}
+                      checked={!!formData.termsAccepted}
+                      onChange={(e) => setFormData(prev => ({ ...prev, termsAccepted: e.target.checked }))}
                       className="mt-1 w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
                     />
                     <div className="flex-1">
                       <label htmlFor="termsAccepted" className="text-sm font-medium text-gray-900 cursor-pointer">
                         I have read and agree to the Terms & Conditions
-                  </label>
+                      </label>
                       <p className="text-xs text-gray-600 mt-1">
-                        By checking this box, you acknowledge that you have read, understood, and agree to be bound by the terms and conditions outlined in the contract above.
+                        Checking this box confirms that the information above is accurate and that you agree to the contract terms.
                       </p>
                     </div>
                   </div>
@@ -1052,8 +1192,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                     <div>
                       <h5 className="text-sm font-semibold text-amber-800 mb-1">Important Notice</h5>
                       <p className="text-xs text-amber-700">
-                        This booking is subject to the terms and conditions above. Please ensure you understand all terms before proceeding. 
-                        If you have any questions, please contact us before completing your booking.
+                        This booking is subject to the terms and conditions above. Please ensure you understand all terms before proceeding. If you have any questions, please contact us before completing your booking.
                       </p>
                     </div>
                   </div>
@@ -1202,6 +1341,10 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                 <div className="flex justify-between text-gray-900">
                   <span className="font-semibold">Contact Email:</span>
                   <span>{formData.buyerInfo.email}</span>
+                </div>
+                <div className="flex justify-between text-gray-900">
+                  <span className="font-semibold">Contract Acknowledgement:</span>
+                  <span>{contractSignature || 'Pending signature'}</span>
                 </div>
                 <div className="border-t border-gray-300 pt-4">
                   <div className="flex justify-between text-lg font-semibold">

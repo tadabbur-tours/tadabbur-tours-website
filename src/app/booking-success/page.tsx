@@ -60,6 +60,23 @@ function BookingSuccessContent() {
           <p className="text-gray-600">Your deposit has been successfully processed.</p>
         </div>
 
+        {/* Confirmation Notice */}
+        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-xl p-6 mb-6">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-semibold text-emerald-900 mb-2">Confirmation Email on the Way</h3>
+              <p className="text-emerald-800">
+                You will receive a detailed confirmation email shortly with your booking information, payment receipt, and next steps. Please check your inbox and spam folder.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Booking Details */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Booking Summary</h2>
