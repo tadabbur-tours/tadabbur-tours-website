@@ -787,20 +787,20 @@ export default function Home() {
                             <div className="space-y-1">
                               <p className="font-semibold text-stone-800">{item.name}</p>
                               <p className="text-sm text-stone-600 leading-relaxed">{item.desc}</p>
-                            </div>
+                      </div>
                           </li>
                         );
                       })}
                     </ul>
 
                     <div className="mt-8 h-px w-full bg-gradient-to-r from-emerald-200 via-stone-200 to-amber-200"></div>
-                    <p className="mt-6 text-sm text-stone-500">
-                      Thoughtfully curated so you can focus on reflection, not logistics.
-                    </p>
                   </div>
                 </div>
               ))}
             </div>
+            <p className="mt-10 text-center text-sm text-stone-500">
+              Thoughtfully curated so you can focus on reflection, not logistics.
+            </p>
           </div>
         </div>
       </section>
