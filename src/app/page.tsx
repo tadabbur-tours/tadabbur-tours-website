@@ -33,7 +33,6 @@ export default function Home() {
     'gallery-1.JPG',
     'gallery-2.JPG', 
     'gallery-3.JPG',
-    'gallery-4.JPG',
     'gallery-5.jpg',
     'gallery-6.jpg'
   ];
@@ -42,7 +41,7 @@ export default function Home() {
     {
       name: 'Makkah',
       image: 'makkah.jpg',
-      description: 'Experience the spiritual center of Islam. Perform Umrah at the Ka\'aba and walk in the footsteps of Prophet Ibrahim (AS).'
+      description: 'Experience the spiritual center of Islam. Perform Umrah at the Ka\'bah and walk in the footsteps of Prophet Ibrahim (AS).'
     },
     {
       name: 'Jabal Nur',
@@ -280,7 +279,7 @@ export default function Home() {
                     isScrolled ? 'text-gray-700 hover:text-amber-600' : 'text-white hover:text-amber-200'
                   }`}
                 >
-                  Taf-Seerah Umrah
+                  The Experience
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-amber-500 to-amber-600 transition-all duration-300 hover:w-full"></span>
                 </button>
               </li>
@@ -339,7 +338,7 @@ export default function Home() {
                 }}
                 className="block w-full text-left px-6 py-3 text-gray-700 hover:text-amber-600 hover:bg-amber-50 transition-all duration-300"
               >
-                Taf-Seerah Umrah
+                The Experience
               </button>
               <button 
                 onClick={() => {
@@ -388,8 +387,8 @@ export default function Home() {
             </div>
             
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 leading-tight">
-              Tadabbur Tours
-            </h1>
+            Tadabbur Tours
+          </h1>
             
             <p className="text-xl md:text-2xl lg:text-3xl mb-8 font-light leading-relaxed">
               Exploring the Depths of the Divine Miracle
@@ -404,7 +403,7 @@ export default function Home() {
                 onClick={() => scrollToSection('taf-seerah')}
                 className="inline-flex items-center justify-center px-8 py-4 border-2 border-white text-white rounded-full font-semibold text-lg hover:bg-white hover:text-stone-800 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 w-full sm:w-auto min-w-[220px]"
               >
-                Discover the Journey
+            Discover the Journey
               </button>
               <button 
                 onClick={() => scrollToSection('packages')}
@@ -468,7 +467,7 @@ export default function Home() {
                         ? "url('/jan.png')" 
                         : pkg.id === 'august' 
                         ? "url('/aug.png')" 
-                        : "url('/1.jpg')"
+                        : "url('/Dec2026.png')"
                     }}
                   ></div>
                   <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/20"></div>
@@ -488,7 +487,7 @@ export default function Home() {
                 {/* Sold Out Overlay */}
                 {pkg.soldOut && (
                   <div className="absolute inset-0 bg-black/10 backdrop-blur-md rounded-3xl flex items-center justify-center z-10">
-                    <div className="text-center">
+                <div className="text-center">
                       <div className="text-4xl mb-2">🔒</div>
                       <div className={`inline-block px-6 py-3 rounded-xl bg-red-100/90 border-2 border-red-300 shadow-lg ${pkg.id === 'january' ? 'text-red-600' : 'text-red-500'}`}>
                         <span className="text-xl font-bold">Fully Booked</span>
@@ -541,7 +540,7 @@ export default function Home() {
                     }}
                     disabled={pkg.soldOut}
                   className={`w-full py-4 px-6 rounded-2xl font-bold text-lg transition-all duration-300 transform ${
-                    pkg.soldOut 
+                      pkg.soldOut 
                       ? 'bg-gray-500/50 text-gray-300 cursor-not-allowed' 
                       : pkg.status === 'inquiry'
                       ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:shadow-xl hover:scale-105 hover:-translate-y-1 text-white rounded-full'
@@ -620,7 +619,7 @@ export default function Home() {
             </div>
             
             <div className="text-center space-y-6 text-lg text-stone-700 leading-relaxed">
-              <p>Tadabbur Tours is a tour operator leading immersive Qur&apos;an-inspired journeys. Our flagship trip, the Taf-Seerah Umrah Experience, isn&apos;t just about visiting sacred places, it&apos;s about living the story of the Prophet (ﷺ) through the Qur&apos;an.</p>
+              <p>Tadabbur Tours is a tour operator leading immersive Qur&apos;an-inspired journeys. Our flagship trip, the Taf-Seerah Umrah Experience, isn&apos;t just about visiting sacred places, it&apos;s about living the story of the Prophet (SAW) through the Qur&apos;an.</p>
               <p>We ensure that your journey with us starts before takeoff through prep sessions, guides, and reflections - and continues after you return, so the experience truly lasts. We handle all the details so you can focus on what truly matters: reflection, connection, and transformation.</p>
               <p className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-amber-600 to-amber-700 bg-clip-text text-transparent mt-8 pt-6 border-t border-stone-300">
                 We don&apos;t just take you to Umrah. We take you through the Qur&apos;an.
@@ -659,12 +658,72 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Sacred Sites */}
+          <div className="mb-16">
+            <div className="text-center mb-12">
+              <h3 className="text-3xl font-bold mb-4 text-stone-800">Sacred Sites We Visit</h3>
+              <p className="text-stone-600">Explore the landmarks where our journey brings the Seerah to life.</p>
+            </div>
+
+            <div className="relative max-w-5xl mx-auto">
+              <div className="relative bg-white border border-stone-200 rounded-3xl overflow-hidden shadow-2xl">
+                <div className="relative h-80 md:h-96">
+                  <Image 
+                    src={`/${sacredSites[currentSacredSite].image}`} 
+                    alt={sacredSites[currentSacredSite].name} 
+                    fill 
+                    className="object-cover transition-all duration-500" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
+                  <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
+                    <h4 className="text-3xl md:text-4xl font-bold mb-3">{sacredSites[currentSacredSite].name}</h4>
+                    <p className="text-lg leading-relaxed text-white/95">{sacredSites[currentSacredSite].description}</p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={prevSacredSite}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-stone-800 p-4 rounded-full shadow-xl transition-all duration-300 hover:scale-110 z-10"
+                  aria-label="Previous sacred site"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={nextSacredSite}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-stone-800 p-4 rounded-full shadow-xl transition-all duration-300 hover:scale-110 z-10"
+                  aria-label="Next sacred site"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="flex justify-center gap-3 mt-8">
+                {sacredSites.map((site, index) => (
+                  <button
+                    key={index}
+                    onClick={() => goToSacredSite(index)}
+                    className={`transition-all duration-300 ${
+                      currentSacredSite === index 
+                        ? 'w-12 h-3 bg-gradient-to-r from-stone-600 to-stone-700 rounded-full' 
+                        : 'w-3 h-3 bg-stone-300 hover:bg-stone-400 rounded-full'
+                    }`}
+                    aria-label={`Go to ${site.name}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+
           {/* What's Included */}
           <div>
             <h3 className="text-3xl font-bold mb-8 text-center text-stone-800">What&apos;s Included</h3>
             <p className="text-center text-stone-600 mb-12 text-xl">Everything you need for a complete spiritual journey</p>
             
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 items-stretch">
+            <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-8">
               {[
                 { 
                   icon: '✈️', 
@@ -690,7 +749,7 @@ export default function Home() {
                   items: [
                     { name: 'Umrah Guidebook', desc: 'A step-by-step guide that details everything you need to know' },
                     { name: 'Tadabbur Circles', desc: 'An opportunity to slow down & reflect on the experience' },
-                    { name: 'Guided Ziyarat', desc: 'You don\'t just visit the location, you also get the story' }
+                    { name: 'Guided Ziyarat', desc: 'Learn the story behind every location you visit' }
                   ] 
                 },
                 { 
@@ -703,21 +762,41 @@ export default function Home() {
                   ] 
                 }
               ].map((category, index) => (
-                <div key={index} className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-stone-200 flex flex-col">
-                  <div className="flex items-center mb-4">
-                    <span className="text-2xl mr-3">{category.icon}</span>
-                    <h4 className="text-xl font-bold text-stone-800">{category.title}</h4>
+                <div key={index} className="group relative overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-emerald-200/40 blur-3xl"></div>
+                    <div className="absolute -bottom-12 -left-10 h-40 w-40 rounded-full bg-amber-200/40 blur-3xl"></div>
                   </div>
-                  <div className="space-y-3 flex flex-col flex-1">
-                    {category.items.map((item, itemIndex) => (
-                      <div 
-                        key={itemIndex} 
-                        className="bg-white/60 hover:bg-white/90 border border-stone-200 hover:border-stone-300 rounded-xl p-4 transition-all duration-300 transform hover:scale-105 hover:shadow-lg cursor-pointer flex-1 flex flex-col"
-                      >
-                        <h5 className="font-semibold text-stone-800 mb-2">{item.name}</h5>
-                        <p className="text-sm text-stone-600 flex-1">{item.desc}</p>
-                      </div>
-                    ))}
+                  <div className="relative flex h-full flex-col p-8">
+                    <div className="flex items-center gap-4">
+                      <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-100 text-2xl">{category.icon}</span>
+                      <h4 className="text-xl font-bold text-stone-800">{category.title}</h4>
+                    </div>
+
+                    <ul className="mt-6 space-y-6">
+                      {category.items.map((item, itemIndex) => {
+                        const isLast = itemIndex === category.items.length - 1;
+                        return (
+                          <li key={itemIndex} className="relative pl-12">
+                            <span className="absolute left-0 top-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-emerald-500 bg-white text-sm font-semibold text-emerald-600">
+                              ✓
+                            </span>
+                            {!isLast && (
+                              <span className="absolute left-3.5 top-9 h-full w-0.5 bg-emerald-100"></span>
+                            )}
+                            <div className="space-y-1">
+                              <p className="font-semibold text-stone-800">{item.name}</p>
+                              <p className="text-sm text-stone-600 leading-relaxed">{item.desc}</p>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+
+                    <div className="mt-8 h-px w-full bg-gradient-to-r from-emerald-200 via-stone-200 to-amber-200"></div>
+                    <p className="mt-6 text-sm text-stone-500">
+                      Thoughtfully curated so you can focus on reflection, not logistics.
+                    </p>
                   </div>
                 </div>
               ))}
@@ -731,84 +810,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-stone-700 to-stone-800 bg-clip-text text-transparent">
-            Sacred Sites We Visit
+              Captured Moments
             </h2>
             <div className="w-32 h-1 bg-gradient-to-r from-stone-400 to-stone-600 mx-auto rounded-full"></div>
-          </div>
-          
-          {/* Sacred Sites Carousel */}
-          <div className="mb-16">
-            <div className="relative max-w-5xl mx-auto">
-              {/* Main Sacred Site Card */}
-              <div className="relative">
-                <div className="bg-white border border-stone-200 rounded-2xl overflow-hidden shadow-xl">
-                  <div className="relative h-80 md:h-96">
-                    <Image 
-                      src={`/${sacredSites[currentSacredSite].image}`} 
-                      alt={sacredSites[currentSacredSite].name} 
-                      fill 
-                      className="object-cover transition-all duration-500" 
-                    />
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent"></div>
-                    
-                    {/* Content Overlay */}
-                    <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-                      <h4 className="text-3xl md:text-4xl font-bold mb-3">{sacredSites[currentSacredSite].name}</h4>
-                      <p className="text-lg leading-relaxed text-white/95">{sacredSites[currentSacredSite].description}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Navigation Arrows */}
-                <button
-                  onClick={prevSacredSite}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-stone-800 p-4 rounded-full shadow-xl transition-all duration-300 hover:scale-110 z-10"
-                  aria-label="Previous sacred site"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </button>
-                <button
-                  onClick={nextSacredSite}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-stone-800 p-4 rounded-full shadow-xl transition-all duration-300 hover:scale-110 z-10"
-                  aria-label="Next sacred site"
-                >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Indicator Dots */}
-              <div className="flex justify-center gap-3 mt-8">
-                {sacredSites.map((site, index) => (
-                  <button
-                    key={index}
-                    onClick={() => goToSacredSite(index)}
-                    className={`transition-all duration-300 ${
-                      currentSacredSite === index 
-                        ? 'w-12 h-3 bg-gradient-to-r from-stone-600 to-stone-700 rounded-full' 
-                        : 'w-3 h-3 bg-stone-300 hover:bg-stone-400 rounded-full'
-                    }`}
-                    aria-label={`Go to ${site.name}`}
-                  />
-                ))}
-              </div>
-
-              {/* Site Counter */}
-              <div className="text-center mt-6">
-                <p className="text-stone-600 font-medium">
-                  {currentSacredSite + 1} of {sacredSites.length} Sacred Sites
-                </p>
-              </div>
-            </div>
           </div>
 
           {/* Photo Gallery Slideshow */}
           <div className="mb-16">
-            <h3 className="text-3xl font-bold mb-12 text-center text-stone-800">Captured Moments</h3>
             <div className="relative max-w-6xl mx-auto">
               <div className="relative h-[500px] lg:h-[600px] rounded-3xl overflow-hidden shadow-2xl group cursor-pointer" onClick={() => setLightboxImage(slides[currentSlide])}>
                 <Image 
@@ -1037,7 +1045,7 @@ export default function Home() {
                 >
                   <span className="relative z-10 flex items-center justify-center">
                     <span className="mr-2">📤</span>
-                    Send Message
+                  Send Message
                   </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-stone-700 via-stone-800 to-stone-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </button>
@@ -1091,7 +1099,7 @@ export default function Home() {
         >
           <span className="flex items-center">
             <span className="mr-2">🚀</span>
-            Book Now
+          Book Now
           </span>
         </button>
       )}
