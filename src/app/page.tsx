@@ -934,7 +934,7 @@ export default function Home() {
               <div className="space-y-8">
                 {[
                   { icon: '📧', title: 'Email', info: 'ask@tadabburtours.com', description: 'Send us your questions anytime' },
-                  { icon: '📱', title: 'Phone', info: '+1 (555) 123-4567', description: 'Call us for immediate assistance' },
+                  { icon: '📱', title: 'Phone', info: '+1 (763) 772-2055', description: 'Call us for immediate assistance' },
                   { icon: '📷', title: 'Instagram', info: '@tadabburtours', description: 'Follow us for updates and journey highlights', link: 'https://instagram.com/tadabburtours' }
                 ].map((contact, index) => (
                   <div key={index} className={`group flex items-start p-6 bg-white/60 backdrop-blur-sm rounded-2xl hover:bg-white/80 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${contact.link ? 'cursor-pointer' : ''}`} onClick={contact.link ? () => window.open(contact.link, '_blank', 'noopener,noreferrer') : undefined}>
