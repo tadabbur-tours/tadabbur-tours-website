@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import BookingModal from '@/components/BookingModal';
@@ -28,6 +28,17 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  const [contactForm, setContactForm] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: '',
+    botField: ''
+  });
+  const [isSendingContact, setIsSendingContact] = useState(false);
+  const [contactStatus, setContactStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [contactError, setContactError] = useState<string | null>(null);
 
   const slides = [
     'gallery-1.JPG',
@@ -189,6 +200,77 @@ export default function Home() {
   const openInquiryModal = (packageId: string, packageName: string, price: string, dates: string, duration: string) => {
     setBookingData({ packageId, packageName, price, dates, duration });
     setIsInquiryModalOpen(true);
+  };
+
+  const handleContactInputChange = (field: keyof typeof contactForm, value: string) => {
+    setContactForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    if (contactStatus !== 'idle') {
+      setContactStatus('idle');
+    }
+    if (contactError) {
+      setContactError(null);
+    }
+  };
+
+  const encodeFormData = (data: Record<string, string>) =>
+    Object.keys(data)
+      .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
+      .join('&');
+
+  const handleContactSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSendingContact(true);
+    setContactStatus('idle');
+    setContactError(null);
+
+    try {
+      if (contactForm.botField) {
+        // Honeypot triggered - silently succeed
+        setContactStatus('success');
+        setIsSendingContact(false);
+        return;
+      }
+
+      const formPayload = {
+        'form-name': 'contact',
+        'bot-field': contactForm.botField,
+        fullName: contactForm.fullName,
+        email: contactForm.email,
+        phone: contactForm.phone,
+        subject: contactForm.subject,
+        message: contactForm.message
+      };
+
+      const response = await fetch('/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: encodeFormData(formPayload)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message. Please try again later.');
+      }
+
+      setContactStatus('success');
+      setContactForm({
+        fullName: '',
+        email: '',
+        phone: '',
+        subject: '',
+        message: '',
+        botField: ''
+      });
+    } catch (error) {
+      setContactStatus('error');
+      setContactError('Failed to send message. Please try again or email us directly at info@tadabburtours.com.');
+    } finally {
+      setIsSendingContact(false);
+    }
   };
 
   const closeBookingModal = () => {
@@ -957,7 +1039,25 @@ export default function Home() {
             
             {/* Contact Form */}
             <div>
-              <form className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-stone-200/50">
+              <form
+                name="contact"
+                method="POST"
+                data-netlify="true"
+                netlify-honeypot="bot-field"
+                className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-stone-200/50"
+                onSubmit={handleContactSubmit}
+              >
+                <input type="hidden" name="form-name" value="contact" />
+                <div className="hidden">
+                  <label>
+                    Don&apos;t fill this out if you&apos;re human:
+                    <input
+                      name="bot-field"
+                      value={contactForm.botField}
+                      onChange={(e) => handleContactInputChange('botField', e.target.value)}
+                    />
+                  </label>
+                </div>
                 <h3 className="text-2xl font-bold text-stone-800 mb-8">Send us a Message</h3>
                 
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
@@ -965,8 +1065,12 @@ export default function Home() {
                     <input 
                       type="text" 
                       id="fullName"
-                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900" 
+                      name="fullName"
+                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900"
                       placeholder=" "
+                      value={contactForm.fullName}
+                      onChange={(e) => handleContactInputChange('fullName', e.target.value)}
+                      required
                     />
                     <label 
                       htmlFor="fullName"
@@ -979,8 +1083,12 @@ export default function Home() {
                     <input 
                       type="email" 
                       id="email"
-                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900" 
+                      name="email"
+                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900"
                       placeholder=" "
+                      value={contactForm.email}
+                      onChange={(e) => handleContactInputChange('email', e.target.value)}
+                      required
                     />
                     <label 
                       htmlFor="email"
@@ -996,8 +1104,12 @@ export default function Home() {
                     <input 
                       type="tel" 
                       id="phone"
-                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900" 
+                      name="phone"
+                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900"
                       placeholder=" "
+                      value={contactForm.phone}
+                      onChange={(e) => handleContactInputChange('phone', e.target.value)}
+                      required
                     />
                     <label 
                       htmlFor="phone"
@@ -1010,8 +1122,11 @@ export default function Home() {
                     <input 
                       type="text" 
                       id="subject"
-                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900" 
+                      name="subject"
+                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900"
                       placeholder=" "
+                      value={contactForm.subject}
+                      onChange={(e) => handleContactInputChange('subject', e.target.value)}
                     />
                     <label 
                       htmlFor="subject"
@@ -1026,9 +1141,13 @@ export default function Home() {
                   <div className="relative">
                     <textarea 
                       id="message"
+                      name="message"
                       rows={4} 
-                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer resize-none text-gray-900" 
+                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer resize-none text-gray-900"
                       placeholder=" "
+                      value={contactForm.message}
+                      onChange={(e) => handleContactInputChange('message', e.target.value)}
+                      required
                     />
                     <label 
                       htmlFor="message"
@@ -1039,16 +1158,35 @@ export default function Home() {
                   </div>
                 </div>
                 
-                <button 
-                  type="submit" 
-                  className="w-full bg-gradient-to-r from-stone-600 via-stone-700 to-stone-800 text-white py-4 rounded-xl font-bold text-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 relative overflow-hidden group"
-                >
-                  <span className="relative z-10 flex items-center justify-center">
-                    <span className="mr-2">📤</span>
-                  Send Message
-                  </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-stone-700 via-stone-800 to-stone-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </button>
+                <div className="space-y-4">
+                  <button 
+                    type="submit" 
+                    disabled={isSendingContact}
+                    className={`w-full bg-gradient-to-r from-stone-600 via-stone-700 to-stone-800 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 relative overflow-hidden group ${
+                      isSendingContact
+                        ? 'opacity-80 cursor-not-allowed'
+                        : 'hover:shadow-2xl transform hover:scale-105 hover:-translate-y-1'
+                    }`}
+                  >
+                    <span className="relative z-10 flex items-center justify-center">
+                      <span className="mr-2">📤</span>
+                      {isSendingContact ? 'Sending...' : 'Send Message'}
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-stone-700 via-stone-800 to-stone-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </button>
+
+                  {contactStatus === 'success' && (
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                      Message sent! We’ll get back to you shortly.
+                    </div>
+                  )}
+
+                  {contactStatus === 'error' && (
+                    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                      {contactError || 'Something went wrong. Please try again or email us directly at info@tadabburtours.com.'}
+                    </div>
+                  )}
+                </div>
               </form>
             </div>
           </div>
