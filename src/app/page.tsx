@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, useRef, FormEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import BookingModal from '@/components/BookingModal';
 import InquiryModal from '@/components/InquiryModal';
+import emailjs from '@emailjs/browser';
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -28,17 +29,10 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
-  const [contactForm, setContactForm] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    subject: '',
-    message: '',
-    botField: ''
-  });
   const [isSendingContact, setIsSendingContact] = useState(false);
   const [contactStatus, setContactStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [contactError, setContactError] = useState<string | null>(null);
+  const contactFormRef = useRef<HTMLFormElement | null>(null);
 
   const slides = [
     'gallery-1.JPG',
@@ -202,72 +196,45 @@ export default function Home() {
     setIsInquiryModalOpen(true);
   };
 
-  const handleContactInputChange = (field: keyof typeof contactForm, value: string) => {
-    setContactForm(prev => ({
-      ...prev,
-      [field]: value
-    }));
-    if (contactStatus !== 'idle') {
-      setContactStatus('idle');
-    }
-    if (contactError) {
-      setContactError(null);
-    }
-  };
-
-  const encodeFormData = (data: Record<string, string>) =>
-    Object.keys(data)
-      .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
-      .join('&');
-
   const handleContactSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+    if (!serviceId || !templateId || !publicKey) {
+      setContactError('Contact form is not configured yet. Please reach out via email.');
+      setContactStatus('error');
+      return;
+    }
+
+    const formElement = contactFormRef.current;
+    if (!formElement) return;
+
     setIsSendingContact(true);
     setContactStatus('idle');
     setContactError(null);
 
+    const formData = new FormData(formElement);
+    const payload = {
+      fullName: formData.get('fullName')?.toString() ?? '',
+      email: formData.get('email')?.toString() ?? '',
+      phone: formData.get('phone')?.toString() ?? '',
+      subject: formData.get('subject')?.toString() ?? '',
+      message: formData.get('message')?.toString() ?? ''
+    };
+
     try {
-      if (contactForm.botField) {
-        // Honeypot triggered - silently succeed
-        setContactStatus('success');
-        setIsSendingContact(false);
-        return;
-      }
-
-      const formPayload = {
-        'form-name': 'contact',
-        'bot-field': contactForm.botField,
-        fullName: contactForm.fullName,
-        email: contactForm.email,
-        phone: contactForm.phone,
-        subject: contactForm.subject,
-        message: contactForm.message
-      };
-
-      const response = await fetch('/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: encodeFormData(formPayload)
+      await emailjs.send(serviceId, templateId, payload, {
+        publicKey
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to send message. Please try again later.');
-      }
-
       setContactStatus('success');
-      setContactForm({
-        fullName: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: '',
-        botField: ''
-      });
+      formElement.reset();
     } catch (error) {
-      setContactStatus('error');
+      console.error('EmailJS error:', error);
       setContactError('Failed to send message. Please try again or email us directly at info@tadabburtours.com.');
+      setContactStatus('error');
     } finally {
       setIsSendingContact(false);
     }
@@ -1040,24 +1007,10 @@ export default function Home() {
             {/* Contact Form */}
             <div>
               <form
-                name="contact"
-                method="POST"
-                data-netlify="true"
-                netlify-honeypot="bot-field"
-                className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-stone-200/50"
+                ref={contactFormRef}
                 onSubmit={handleContactSubmit}
+                className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-stone-200/50"
               >
-                <input type="hidden" name="form-name" value="contact" />
-                <div className="hidden">
-                  <label>
-                    Don&apos;t fill this out if you&apos;re human:
-                    <input
-                      name="bot-field"
-                      value={contactForm.botField}
-                      onChange={(e) => handleContactInputChange('botField', e.target.value)}
-                    />
-                  </label>
-                </div>
                 <h3 className="text-2xl font-bold text-stone-800 mb-8">Send us a Message</h3>
                 
                 <div className="grid md:grid-cols-2 gap-6 mb-6">
@@ -1068,8 +1021,6 @@ export default function Home() {
                       name="fullName"
                       className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900"
                       placeholder=" "
-                      value={contactForm.fullName}
-                      onChange={(e) => handleContactInputChange('fullName', e.target.value)}
                       required
                     />
                     <label 
@@ -1086,8 +1037,6 @@ export default function Home() {
                       name="email"
                       className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900"
                       placeholder=" "
-                      value={contactForm.email}
-                      onChange={(e) => handleContactInputChange('email', e.target.value)}
                       required
                     />
                     <label 
@@ -1107,8 +1056,6 @@ export default function Home() {
                       name="phone"
                       className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900"
                       placeholder=" "
-                      value={contactForm.phone}
-                      onChange={(e) => handleContactInputChange('phone', e.target.value)}
                       required
                     />
                     <label 
@@ -1125,8 +1072,6 @@ export default function Home() {
                       name="subject"
                       className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900"
                       placeholder=" "
-                      value={contactForm.subject}
-                      onChange={(e) => handleContactInputChange('subject', e.target.value)}
                     />
                     <label 
                       htmlFor="subject"
@@ -1141,12 +1086,10 @@ export default function Home() {
                   <div className="relative">
                     <textarea 
                       id="message"
-                      name="message"
                       rows={4} 
+                      name="message"
                       className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer resize-none text-gray-900"
                       placeholder=" "
-                      value={contactForm.message}
-                      onChange={(e) => handleContactInputChange('message', e.target.value)}
                       required
                     />
                     <label 
