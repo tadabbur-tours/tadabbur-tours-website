@@ -982,7 +982,7 @@ export default function Home() {
               <h3 className="text-3xl font-bold text-stone-800 mb-8">Get in Touch</h3>
               <div className="space-y-8">
                 {[
-                  { icon: '📧', title: 'Email', info: 'ask@tadabburtours.com', description: 'Send us your questions anytime' },
+                  { icon: '📧', title: 'Email', info: 'info@tadabburtours.com', description: 'Send us your questions anytime' },
                   { icon: '📱', title: 'Phone', info: '+1 (763) 772-2055', description: 'Call us for immediate assistance' },
                   { icon: '📷', title: 'Instagram', info: '@tadabburtours', description: 'Follow us for updates and journey highlights', link: 'https://instagram.com/tadabburtours' }
                 ].map((contact, index) => (
