@@ -822,7 +822,11 @@ export default function Home() {
                       <h4 className="text-xl font-bold text-stone-800">{category.title}</h4>
                     </div>
 
-                    <ul className="mt-6 space-y-6">
+                    <ul
+                      className={`mt-6 space-y-7 ${
+                        category.title === 'Learning & Guidance' ? 'pb-4' : ''
+                      }`}
+                    >
                       {category.items.map((item, itemIndex) => {
                         const isLast = itemIndex === category.items.length - 1;
                         return (
@@ -833,7 +837,7 @@ export default function Home() {
                             {!isLast && (
                               <span className="absolute left-3.5 top-9 h-full w-0.5 bg-emerald-100"></span>
                             )}
-                            <div className="space-y-1">
+                            <div className="space-y-2">
                               <p className="font-semibold text-stone-800">{item.name}</p>
                               <p className="text-sm text-stone-600 leading-relaxed">{item.desc}</p>
                       </div>
@@ -842,7 +846,7 @@ export default function Home() {
                       })}
                     </ul>
 
-                    <div className="mt-8 h-px w-full bg-gradient-to-r from-emerald-200 via-stone-200 to-amber-200"></div>
+                    <div className="mt-auto mb-[1px] h-px w-full bg-gradient-to-r from-emerald-200 via-stone-200 to-amber-200"></div>
                   </div>
                 </div>
               ))}
@@ -1003,7 +1007,7 @@ export default function Home() {
                 ))}
               </div>
             </div>
-            
+
             {/* Contact Form */}
             <div>
               <form
