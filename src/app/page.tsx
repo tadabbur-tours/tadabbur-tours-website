@@ -90,7 +90,7 @@ export default function Home() {
       name: 'December Umrah',
       price: '$3,750',
       duration: '10 days',
-      dates: 'December 20-31, 2026',
+      dates: 'December 23, 2026 – January 3, 2027',
       status: 'standard',
       soldOut: false
     },
