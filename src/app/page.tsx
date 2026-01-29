@@ -562,18 +562,20 @@ export default function Home() {
                   <div className={`space-y-3 mb-8 ${
                     pkg.id === 'january' ? 'text-stone-300' : 'text-stone-600'
                   }`}>
-                    <div className="flex items-center justify-center space-x-2">
-                      <span className="text-stone-500">📅</span>
-                      <span><strong>Duration:</strong> {pkg.duration}</span>
+                    <div className="flex items-center justify-center gap-3">
+                      <span className="text-stone-500 text-lg flex-shrink-0 w-6 text-center">📅</span>
+                      <span className="text-center"><strong>Duration:</strong> {pkg.duration}</span>
                     </div>
-                    <div className="flex items-center justify-center space-x-2">
-                      <span className="text-stone-500">🗓️</span>
-                      <span><strong>Dates:</strong> {pkg.dates}</span>
+                    <div className="flex items-start justify-center gap-3">
+                      <span className="text-stone-500 text-lg flex-shrink-0 w-6 text-center pt-0.5">🗓️</span>
+                      <div className="text-center flex-1">
+                        <strong>Dates:</strong>{' '}
+                        <span className="inline-block text-balance">{pkg.dates}</span>
+                      </div>
                     </div>
                     {!pkg.soldOut && (
-                      <div className="flex items-center justify-center space-x-2">
-                        <span className="text-stone-500"></span>
-                        <span className="text-sm">A premium experience at a competitive price</span>
+                      <div className="flex items-center justify-center">
+                        <span className="text-sm text-center">A premium experience at a competitive price</span>
                       </div>
                     )}
                   </div>
