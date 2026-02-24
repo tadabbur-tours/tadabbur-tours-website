@@ -87,3 +87,6 @@ SETUP.md
 
 # TypeScript build info
 tsconfig.tsbuildinfo
+
+# local files
+env.*

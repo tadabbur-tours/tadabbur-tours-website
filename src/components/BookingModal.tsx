@@ -405,20 +405,26 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
         })
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create checkout session');
+      let data: { error?: string; url?: string };
+      try {
+        data = await response.json();
+      } catch {
+        throw new Error(`Checkout failed (${response.status}). Server may have returned a non-JSON response.`);
       }
 
-      const { url } = await response.json();
-      
-      // Redirect to Stripe Checkout
+      if (!response.ok) {
+        const msg = (data && typeof data.error === 'string') ? data.error : `Checkout failed (${response.status})`;
+        throw new Error(msg);
+      }
+
+      const url = data?.url;
       if (url) {
         window.location.href = url;
       }
     } catch (error) {
       console.error('Error creating checkout session:', error);
-      alert('Failed to initialize payment. Please try again or contact support.');
+      const msg = error instanceof Error ? error.message : 'Failed to initialize payment. Please try again or contact support.';
+      alert(msg);
       setIsLoadingPayment(false);
     }
   };

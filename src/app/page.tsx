@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, useRef, FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import BookingModal from '@/components/BookingModal';
 import InquiryModal from '@/components/InquiryModal';
-import emailjs from '@emailjs/browser';
+import ContactForm from '@/components/ContactForm';
 
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -29,10 +29,6 @@ export default function Home() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
-  const [isSendingContact, setIsSendingContact] = useState(false);
-  const [contactStatus, setContactStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [contactError, setContactError] = useState<string | null>(null);
-  const contactFormRef = useRef<HTMLFormElement | null>(null);
 
   const slides = [
     'gallery-1.JPG',
@@ -194,50 +190,6 @@ export default function Home() {
   const openInquiryModal = (packageId: string, packageName: string, price: string, dates: string, duration: string) => {
     setBookingData({ packageId, packageName, price, dates, duration });
     setIsInquiryModalOpen(true);
-  };
-
-  const handleContactSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
-    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
-    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
-
-    if (!serviceId || !templateId || !publicKey) {
-      setContactError('Contact form is not configured yet. Please reach out via email.');
-      setContactStatus('error');
-      return;
-    }
-
-    const formElement = contactFormRef.current;
-    if (!formElement) return;
-
-    setIsSendingContact(true);
-    setContactStatus('idle');
-    setContactError(null);
-
-    const formData = new FormData(formElement);
-    const payload = {
-      fullName: formData.get('fullName')?.toString() ?? '',
-      email: formData.get('email')?.toString() ?? '',
-      phone: formData.get('phone')?.toString() ?? '',
-      subject: formData.get('subject')?.toString() ?? '',
-      message: formData.get('message')?.toString() ?? ''
-    };
-
-    try {
-      await emailjs.send(serviceId, templateId, payload, {
-        publicKey
-      });
-      setContactStatus('success');
-      formElement.reset();
-    } catch (error) {
-      console.error('EmailJS error:', error);
-      setContactError('Failed to send message. Please try again or email us directly at info@tadabburtours.com.');
-      setContactStatus('error');
-    } finally {
-      setIsSendingContact(false);
-    }
   };
 
   const closeBookingModal = () => {
@@ -1012,200 +964,19 @@ export default function Home() {
 
             {/* Contact Form */}
             <div>
-              <form
-                ref={contactFormRef}
-                onSubmit={handleContactSubmit}
-                className="bg-white/90 backdrop-blur-md rounded-3xl p-8 shadow-2xl border border-stone-200/50"
-              >
-                <h3 className="text-2xl font-bold text-stone-800 mb-8">Send us a Message</h3>
-                
-                <div className="grid md:grid-cols-2 gap-6 mb-6">
-                  <div className="relative">
-                    <input 
-                      type="text" 
-                      id="fullName"
-                      name="fullName"
-                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900"
-                      placeholder=" "
-                      required
-                    />
-                    <label 
-                      htmlFor="fullName"
-                      className="absolute left-4 -top-2 bg-white px-2 text-sm font-semibold text-stone-600 peer-placeholder-shown:text-base peer-placeholder-shown:text-stone-400 peer-placeholder-shown:top-4 peer-focus:-top-2 peer-focus:text-sm peer-focus:text-stone-600 transition-all duration-300"
-                    >
-                      Full Name
-                    </label>
-                  </div>
-                  <div className="relative">
-                    <input 
-                      type="email" 
-                      id="email"
-                      name="email"
-                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900"
-                      placeholder=" "
-                      required
-                    />
-                    <label 
-                      htmlFor="email"
-                      className="absolute left-4 -top-2 bg-white px-2 text-sm font-semibold text-stone-600 peer-placeholder-shown:text-base peer-placeholder-shown:text-stone-400 peer-placeholder-shown:top-4 peer-focus:-top-2 peer-focus:text-sm peer-focus:text-stone-600 transition-all duration-300"
-                    >
-                      Email Address
-                    </label>
-                  </div>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-6 mb-6">
-                  <div className="relative">
-                    <input 
-                      type="tel" 
-                      id="phone"
-                      name="phone"
-                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900"
-                      placeholder=" "
-                      required
-                    />
-                    <label 
-                      htmlFor="phone"
-                      className="absolute left-4 -top-2 bg-white px-2 text-sm font-semibold text-stone-600 peer-placeholder-shown:text-base peer-placeholder-shown:text-stone-400 peer-placeholder-shown:top-4 peer-focus:-top-2 peer-focus:text-sm peer-focus:text-stone-600 transition-all duration-300"
-                    >
-                      Phone Number
-                    </label>
-                  </div>
-                  <div className="relative">
-                    <input 
-                      type="text" 
-                      id="subject"
-                      name="subject"
-                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer text-gray-900"
-                      placeholder=" "
-                    />
-                    <label 
-                      htmlFor="subject"
-                      className="absolute left-4 -top-2 bg-white px-2 text-sm font-semibold text-stone-600 peer-placeholder-shown:text-base peer-placeholder-shown:text-stone-400 peer-placeholder-shown:top-4 peer-focus:-top-2 peer-focus:text-sm peer-focus:text-stone-600 transition-all duration-300"
-                    >
-                      Subject
-                    </label>
-                  </div>
-                </div>
-                
-                <div className="mb-8">
-                  <div className="relative">
-                    <textarea 
-                      id="message"
-                      rows={4} 
-                      name="message"
-                      className="w-full px-4 py-4 border-2 border-stone-200 rounded-xl focus:ring-2 focus:ring-stone-500 focus:border-stone-500 transition-all duration-300 peer resize-none text-gray-900"
-                      placeholder=" "
-                      required
-                    />
-                    <label 
-                      htmlFor="message"
-                      className="absolute left-4 -top-2 bg-white px-2 text-sm font-semibold text-stone-600 peer-placeholder-shown:text-base peer-placeholder-shown:text-stone-400 peer-placeholder-shown:top-4 peer-focus:-top-2 peer-focus:text-sm peer-focus:text-stone-600 transition-all duration-300"
-                    >
-                      Share your question or concern with us here
-                    </label>
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <button 
-                    type="submit" 
-                    disabled={isSendingContact}
-                    className={`w-full bg-gradient-to-r from-stone-600 via-stone-700 to-stone-800 text-white py-4 rounded-xl font-bold text-lg transition-all duration-300 relative overflow-hidden group ${
-                      isSendingContact
-                        ? 'opacity-80 cursor-not-allowed'
-                        : 'hover:shadow-2xl transform hover:scale-105 hover:-translate-y-1'
-                    }`}
-                  >
-                    <span className="relative z-10 flex items-center justify-center">
-                      <span className="mr-2">📤</span>
-                      {isSendingContact ? 'Sending...' : 'Send Message'}
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-stone-700 via-stone-800 to-stone-900 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </button>
-
-                  {contactStatus === 'success' && (
-                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                      Message sent! We’ll get back to you shortly.
-                    </div>
-                  )}
-
-                  {contactStatus === 'error' && (
-                    <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                      {contactError || 'Something went wrong. Please try again or email us directly at info@tadabburtours.com.'}
-                    </div>
-                  )}
-                </div>
-              </form>
+              <ContactForm />
             </div>
           </div>
         </div>
       </section>
 
       {/* Lightbox Modal */}
-      {lightboxImage && (
-        <div 
-          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-          onClick={() => setLightboxImage(null)}
-        >
-          <div className="relative max-w-6xl max-h-full">
-            <button
-              onClick={() => setLightboxImage(null)}
-              className="absolute -top-12 right-0 text-white text-4xl hover:text-amber-400 transition-colors duration-300"
-            >
-              ✕
-            </button>
-            <Image
-              src={`/${lightboxImage}`}
-              alt="Gallery Image"
-              width={1200}
-              height={800}
-              className="rounded-2xl shadow-2xl"
-            />
-          </div>
-        </div>
-      )}
 
-      {/* Floating CTA */}
-      {floatingCtaVisible && (
-        <button
-          onClick={() => {
-            // Open booking modal with December Umrah package
-            const decemberPackage = packages.find(pkg => pkg.id === 'december');
-            if (decemberPackage) {
-              openBookingModal(
-                decemberPackage.id,
-                decemberPackage.name,
-                decemberPackage.price,
-                decemberPackage.dates,
-                decemberPackage.duration
-              );
-            }
-          }}
-          className="fixed bottom-8 right-8 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 hover:-translate-y-2 z-40 animate-pulse"
-        >
-          <span className="flex items-center">
-            <span className="mr-2">🚀</span>
-          Book Now
-          </span>
-        </button>
-      )}
-
-      {/* Footer */}
-      <footer className="bg-stone-800 text-white py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p>&copy; 2025 Tadabbur. All rights reserved.</p>
-        </div>
-      </footer>
-
-      {/* Booking Modal */}
       <BookingModal
         isOpen={isBookingModalOpen}
         onClose={closeBookingModal}
         packageData={bookingData}
       />
-
-      {/* Inquiry Modal */}
       <InquiryModal
         isOpen={isInquiryModalOpen}
         onClose={closeInquiryModal}

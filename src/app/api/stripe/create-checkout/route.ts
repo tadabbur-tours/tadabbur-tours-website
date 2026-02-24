@@ -124,6 +124,25 @@ export async function POST(request: NextRequest) {
     // Note: We're NOT adding installment line items here
     // Installments will be handled separately via payment links or future checkout sessions
 
+    // Stripe requires full URLs with http:// or https://. Build them; never use raw env (can be undefined or relative).
+    const successEnv = process.env.STRIPE_SUCCESS_URL;
+    const cancelEnv = process.env.STRIPE_CANCEL_URL;
+    const isAbsolute = (u: string | undefined) => !!u && (u.startsWith('http://') || u.startsWith('https://'));
+
+    let successUrl: string;
+    let cancelUrl: string;
+    if (isAbsolute(successEnv) && isAbsolute(cancelEnv)) {
+      successUrl = successEnv!;
+      cancelUrl = cancelEnv!;
+    } else {
+      const host = request.headers.get('host') || 'localhost:3000';
+      const proto = request.headers.get('x-forwarded-proto') === 'https' ? 'https' : 'http';
+      const base = `${proto}://${host}`;
+      successUrl = isAbsolute(successEnv) ? successEnv! : `${base}/booking-success`;
+      cancelUrl = isAbsolute(cancelEnv) ? cancelEnv! : base;
+    }
+    const successUrlWithSession = successUrl.includes('?') ? `${successUrl}&session_id={CHECKOUT_SESSION_ID}` : `${successUrl}?session_id={CHECKOUT_SESSION_ID}`;
+
     // Configure payment method types based on selection
     const paymentMethodTypes: ('card' | 'us_bank_account' | 'link')[] = paymentMethod === 'bank_transfer' 
       ? ['card', 'us_bank_account', 'link'] // ACH, wire transfer, and other bank methods
@@ -134,8 +153,8 @@ export async function POST(request: NextRequest) {
       payment_method_types: paymentMethodTypes,
       line_items: lineItems,
       mode: 'payment',
-      success_url: `${process.env.STRIPE_SUCCESS_URL}?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: process.env.STRIPE_CANCEL_URL,
+      success_url: successUrlWithSession,
+      cancel_url: cancelUrl,
       customer_email: buyerInfo.email,
       metadata: {
         packageName,
@@ -163,22 +182,15 @@ export async function POST(request: NextRequest) {
       shipping_address_collection: {
         allowed_countries: ['US', 'CA', 'GB', 'AU', 'DE', 'FR', 'IT', 'ES', 'NL', 'BE', 'CH', 'AT', 'SE', 'NO', 'DK', 'FI', 'IE', 'PT', 'LU', 'MT', 'CY', 'EE', 'LV', 'LT', 'SI', 'SK', 'CZ', 'HU', 'PL', 'RO', 'BG', 'HR', 'GR'],
       },
+      allow_promotion_codes: true,
     };
-
-    // Enable promotion codes for card payments only
-    // Note: Promotion codes may not work with all payment methods (e.g., us_bank_account)
-    if (paymentMethod !== 'bank_transfer') {
-      sessionConfig.allow_promotion_codes = true;
-    }
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
 
     return NextResponse.json({ sessionId: session.id, url: session.url });
   } catch (error) {
     console.error('Error creating checkout session:', error);
-    return NextResponse.json(
-      { error: 'Failed to create checkout session' },
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : 'Failed to create checkout session';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
