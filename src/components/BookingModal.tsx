@@ -784,7 +784,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                   <h3 className="text-lg font-semibold text-gray-900 mb-2">Participant Information</h3>
                   <p className="text-sm text-gray-600 mb-6">Please provide details for all {getTotalSpots()} {getTotalSpots() === 1 ? 'person' : 'people'} traveling.</p>
                   
-                  <div className="space-y-6 max-h-[50vh] overflow-y-auto">
+                  <div className="space-y-6">
                     {formData.participants.map((participant, index) => (
                       <div key={index} className="p-6 bg-gray-50 rounded-xl border border-gray-200">
                         <h4 className="text-md font-semibold text-gray-900 mb-4">Person {index + 1}</h4>
