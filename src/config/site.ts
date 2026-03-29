@@ -21,6 +21,7 @@ export const PACKAGES: Package[] = [
     price: '$3,300',
     duration: '10 days',
     dates: 'January 7-18, 2026',
+    tagline: 'An experience worth reliving.',
     status: 'sold-out',
     soldOut: true,
   },
@@ -29,7 +30,9 @@ export const PACKAGES: Package[] = [
     name: 'December Umrah',
     price: '$3,750',
     duration: '10 days',
-    dates: 'December 23, 2026 – January 3, 2027',
+    /** Abbrev. months so the range fits one line in package cards */
+    dates: 'Dec 23, 2026 – Jan 3, 2027',
+    tagline: 'A premium experience at a competitive price',
     status: 'standard',
     soldOut: false,
   },
@@ -39,26 +42,33 @@ export const PACKAGES: Package[] = [
     price: '$3,300',
     duration: '10 days',
     dates: 'August 5-15, 2027',
+    tagline: 'Where Islam is lived, not merely visited.',
     status: 'inquiry',
     soldOut: false,
   },
 ];
 
 export const GALLERY_SLIDES = [
+  'captured-moments-1.JPG',
+  'captured-moments-2.JPG',
+  'captured-moments-3.JPG',
+  'captured-moments-4.JPG',
+  'captured-moments-5.JPG',
+  'captured-moments-6.JPG',
+  'captured-moments-7.JPG',
+  'captured-moments-8.JPG',
   'gallery-1.JPG',
   'gallery-2.JPG',
   'gallery-3.JPG',
-  'gallery-5.jpg',
-  'gallery-6.jpg',
 ];
 
 export const SACRED_SITES: SacredSite[] = [
-  { name: 'Makkah', image: 'makkah.jpg', description: 'Experience the spiritual center of Islam. Perform Umrah at the Ka\'bah and walk in the footsteps of Prophet Ibrahim (AS).' },
-  { name: 'Jabal Nur', image: 'jabal-nur.jpg', description: 'Stand at the Cave of Hira where the first revelation "Iqra" descended upon Prophet Muhammad (SAW).' },
-  { name: 'Madinah', image: 'madinah.jpg', description: 'Visit the Prophet\'s Mosque and experience the blessed Rawdah, a piece of Jannah on earth.' },
-  { name: 'Mount Uhud', image: 'uhud.jpg', description: 'Reflect on the lessons of the Battle of Uhud and visit the graves of the martyrs including Hamza (RA).' },
-  { name: 'Badr', image: 'badr.jpg', description: 'Walk the battlefield where 313 believers faced impossible odds with divine assistance.' },
-  { name: 'Ta\'if', image: 'taif.jpg', description: 'Trace the difficult journey of the Prophet (SAW) and understand his perseverance in the face of rejection.' },
+  { name: 'Makkah', image: 'ts26-makkah.jpeg', description: 'Experience the spiritual center of Islam. Perform Umrah at the Ka\'bah and walk in the footsteps of Prophet Ibrahim (AS).' },
+  { name: 'Jabal Nur', image: 'ts26-jabal-al-nur.JPG', description: 'Stand at the Cave of Hira where the first revelation "Iqra" descended upon Prophet Muhammad (SAW).' },
+  { name: 'Madinah', image: 'ts25-madinah.jpeg', description: 'Visit the Prophet\'s Mosque and experience the blessed Rawdah, a piece of Jannah on earth.' },
+  { name: 'Mount Uhud', image: 'ts26-uhud.JPG', description: 'Reflect on the lessons of the Battle of Uhud and visit the graves of the martyrs including Hamza (RA).' },
+  { name: 'Badr', image: 'ts26-badr.JPG', description: 'Walk the battlefield where 313 believers faced impossible odds with divine assistance.' },
+  { name: 'Ta\'if', image: 'ts26-taif.JPG', description: 'Trace the difficult journey of the Prophet (SAW) and understand his perseverance in the face of rejection.' },
 ];
 
 export const TESTIMONIALS: Testimonial[] = [

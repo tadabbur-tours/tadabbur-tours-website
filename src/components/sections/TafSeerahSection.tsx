@@ -2,13 +2,7 @@
 
 import Image from 'next/image';
 import { SACRED_SITES, EXPERIENCE_FEATURES } from '@/config/site';
-
-interface TafSeerahSectionProps {
-  currentSacredSite: number;
-  onPrevSacredSite: () => void;
-  onNextSacredSite: () => void;
-  onGoToSacredSite: (index: number) => void;
-}
+import EmblaCarousel from '@/components/ui/EmblaCarousel';
 
 const WHATS_INCLUDED = [
   {
@@ -49,14 +43,7 @@ const WHATS_INCLUDED = [
   },
 ];
 
-export default function TafSeerahSection({
-  currentSacredSite,
-  onPrevSacredSite,
-  onNextSacredSite,
-  onGoToSacredSite,
-}: TafSeerahSectionProps) {
-  const site = SACRED_SITES[currentSacredSite];
-
+export default function TafSeerahSection() {
   return (
     <section id="taf-seerah" className="py-20 bg-gradient-to-br from-stone-200 to-stone-100 text-stone-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -84,58 +71,37 @@ export default function TafSeerahSection({
         </div>
 
         <div className="mb-16">
-          <div className="text-center mb-12">
+          <div className="text-center mb-10 sm:mb-12">
             <h3 className="text-3xl font-bold mb-4 text-stone-800">Sacred Sites We Visit</h3>
-            <p className="text-stone-600">Explore the landmarks where our journey brings the Seerah to life.</p>
+            <p className="text-stone-600">Swipe or use arrows to explore each place. Autoplay pauses when you interact.</p>
           </div>
-          <div className="relative max-w-5xl mx-auto">
-            <div className="relative bg-white border border-stone-200 rounded-3xl overflow-hidden shadow-2xl">
-              <div className="relative h-80 md:h-96">
-                <Image
-                  src={`/${site.image}`}
-                  alt={site.name}
-                  fill
-                  className="object-cover transition-all duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-8 text-white">
-                  <h4 className="text-3xl md:text-4xl font-bold mb-3">{site.name}</h4>
-                  <p className="text-lg leading-relaxed text-white/95">{site.description}</p>
-                </div>
-              </div>
-              <button
-                onClick={onPrevSacredSite}
-                className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-stone-800 p-4 rounded-full shadow-xl transition-all duration-300 hover:scale-110 z-10"
-                aria-label="Previous sacred site"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button
-                onClick={onNextSacredSite}
-                className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-stone-800 p-4 rounded-full shadow-xl transition-all duration-300 hover:scale-110 z-10"
-                aria-label="Next sacred site"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-            <div className="flex justify-center gap-3 mt-8">
-              {SACRED_SITES.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => onGoToSacredSite(index)}
-                  className={`transition-all duration-300 ${
-                    currentSacredSite === index
-                      ? 'w-12 h-3 bg-gradient-to-r from-stone-600 to-stone-700 rounded-full'
-                      : 'w-3 h-3 bg-stone-300 hover:bg-stone-400 rounded-full'
-                  }`}
-                  aria-label={`Go to ${SACRED_SITES[index].name}`}
-                />
-              ))}
-            </div>
+          <div className="max-w-5xl mx-auto">
+            <EmblaCarousel
+              slideCount={SACRED_SITES.length}
+              ariaLabel="Sacred sites on the journey"
+              autoplayMs={6000}
+              viewportClassName="rounded-3xl border border-stone-200 bg-white shadow-2xl"
+              renderSlide={(i) => {
+                const site = SACRED_SITES[i];
+                return (
+                  <div className="relative min-h-[280px] w-full sm:min-h-[320px] md:min-h-[24rem]">
+                    <Image
+                      src={`/${site.image}`}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 100vw, 896px"
+                      priority={i === 0}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+                    <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-8 text-white">
+                      <h4 className="text-2xl font-bold sm:text-3xl md:text-4xl mb-2 sm:mb-3">{site.name}</h4>
+                      <p className="text-base leading-relaxed text-white/95 sm:text-lg">{site.description}</p>
+                    </div>
+                  </div>
+                );
+              }}
+            />
           </div>
         </div>
 

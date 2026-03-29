@@ -11,6 +11,8 @@ export interface Package {
   price: string;
   duration: string;
   dates: string;
+  /** Short card blurb under dates (unique per package) */
+  tagline: string;
   status: PackageStatus;
   soldOut: boolean;
 }
