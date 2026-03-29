@@ -235,3 +235,12 @@ html {
 .animate-scale-in {
   animation: scale-in 0.3s ease-out forwards;
 }
+
+/* react-datepicker — above modal (z-50); popper uses fixed + portal to body */
+.react-datepicker-popper.datepicker-in-modal,
+.react-datepicker-popper {
+  z-index: 10050 !important;
+}
+.react-datepicker {
+  font-family: inherit;
+}

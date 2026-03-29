@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import CountrySelect from '@/components/CountrySelect';
+import DateOfBirthPicker from '@/components/DateOfBirthPicker';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -118,6 +120,8 @@ const CONTRACT_SECTIONS: ContractSection[] = [
 
 export default function BookingModal({ isOpen, onClose, packageData }: BookingModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
+  /** Highest step the user has moved forward to — used to show “completed” styling when editing an earlier step */
+  const [maxStepReached, setMaxStepReached] = useState(1);
   const [participantCount, setParticipantCount] = useState(1);
   const [under18Guardian, setUnder18Guardian] = useState<{[key: number]: boolean}>({});
   const [isLoadingPayment, setIsLoadingPayment] = useState(false);
@@ -151,6 +155,8 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
   });
   const [showFullContract, setShowFullContract] = useState(false);
   const [contractSignature, setContractSignature] = useState('');
+  /** After user clicks Next (or nav forces validation), show inline errors until the step validates */
+  const [stepsWithValidationShown, setStepsWithValidationShown] = useState<Set<number>>(new Set());
 
   const roomOptions = [
     { type: 'quad', price: '$3,750', priceNum: 3750, capacity: 4, description: 'Shared room with 3 other people' },
@@ -183,6 +189,10 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
     if (!isOpen) {
       setShowFullContract(false);
       setContractSignature('');
+    } else {
+      setStepsWithValidationShown(new Set());
+      setCurrentStep(1);
+      setMaxStepReached(1);
     }
   }, [isOpen]);
 
@@ -277,7 +287,10 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
 
   const calculateAge = (dateOfBirth: string): number => {
     const today = new Date();
-    const birthDate = new Date(dateOfBirth);
+    // YYYY-MM-DD as date-only strings parse as UTC and shift the calendar day in US timezones
+    const birthDate = /^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)
+      ? new Date(`${dateOfBirth}T12:00:00`)
+      : new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
@@ -302,93 +315,153 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
     }));
   };
 
-  const getValidationErrors = (step: number): string[] => {
-    const errors: string[] = [];
-    
+  /** Field-keyed errors for inline messages (single source of truth with getValidationErrors) */
+  const getFieldErrors = (step: number): Record<string, string> => {
+    const e: Record<string, string> = {};
     switch (step) {
-      case 1:
-        // Check package selection
-        if (getTotalSpots() === 0) {
-          errors.push('Please select at least one room spot');
+      case 1: {
+        const total = getTotalSpots();
+        if (total === 0) {
+          e.spots = 'Please select at least one room spot';
+          break;
         }
-        
-        // Check participants
-        formData.participants.forEach((participant, index) => {
-          const personNum = index + 1;
-          if (!participant.firstName) errors.push(`Person ${personNum}: First name is required`);
-          if (!participant.lastName) errors.push(`Person ${personNum}: Last name is required`);
-          if (!participant.dateOfBirth) errors.push(`Person ${personNum}: Date of birth is required`);
-          if (!participant.phone) errors.push(`Person ${personNum}: Phone number is required`);
-          if (!participant.gender) errors.push(`Person ${personNum}: Gender is required`);
-          if (!participant.nationality) errors.push(`Person ${personNum}: Nationality is required`);
-          if (!participant.hasPassport) errors.push(`Person ${personNum}: Passport status is required`);
+        formData.participants.slice(0, total).forEach((participant, index) => {
+          const p = `p${index}`;
+          if (!participant.firstName?.trim()) e[`${p}-firstName`] = 'First name is required';
+          if (!participant.lastName?.trim()) e[`${p}-lastName`] = 'Last name is required';
+          if (!participant.dateOfBirth) e[`${p}-dateOfBirth`] = 'Date of birth is required';
+          if (!participant.phone?.trim()) e[`${p}-phone`] = 'Phone number is required';
+          if (!participant.gender) e[`${p}-gender`] = 'Gender is required';
+          if (!participant.nationality) e[`${p}-nationality`] = 'Country of citizenship is required';
+          if (!participant.hasPassport) e[`${p}-hasPassport`] = 'Passport status is required';
           if (participant.hasPassport === 'yes' && !participant.passportNationality) {
-            errors.push(`Person ${personNum}: Passport issuing country is required`);
+            e[`${p}-passportNationality`] = 'Passport issuing country is required';
           }
         });
-        
-        // Check under-18 guardian requirements
-        const under18Participants = getUnder18Participants();
+        const under18Participants = getUnder18Participants().filter(({ index }) => index < total);
         under18Participants.forEach(({ participant, index }) => {
-          const personNum = index + 1;
+          const p = `p${index}`;
           if (under18Guardian[index] === undefined) {
-            errors.push(`Person ${personNum}: Guardian status is required (under 18)`);
+            e[`${p}-guardian`] = 'Please indicate guardian travel arrangements (required for travelers under 18)';
           } else if (under18Guardian[index] === true) {
-            if (!participant.guardianFirstName) {
-              errors.push(`Person ${personNum}: Guardian first name is required`);
-            }
-            if (!participant.guardianLastName) {
-              errors.push(`Person ${personNum}: Guardian last name is required`);
-            }
+            if (!participant.guardianFirstName?.trim()) e[`${p}-guardianFirstName`] = 'Guardian first name is required';
+            if (!participant.guardianLastName?.trim()) e[`${p}-guardianLastName`] = 'Guardian last name is required';
           }
         });
-        
         break;
+      }
       case 2:
-        if (!formData.buyerInfo.firstName) errors.push('Buyer first name is required');
-        if (!formData.buyerInfo.lastName) errors.push('Buyer last name is required');
-        if (!formData.buyerInfo.email) errors.push('Buyer email is required');
-        if (!formData.buyerInfo.confirmEmail) errors.push('Email confirmation is required');
-        if (formData.buyerInfo.email && formData.buyerInfo.confirmEmail && formData.buyerInfo.email !== formData.buyerInfo.confirmEmail) {
-          errors.push('Email addresses do not match');
+        if (!formData.buyerInfo.firstName?.trim()) e['buyer-firstName'] = 'Buyer first name is required';
+        if (!formData.buyerInfo.lastName?.trim()) e['buyer-lastName'] = 'Buyer last name is required';
+        if (!formData.buyerInfo.email?.trim()) e['buyer-email'] = 'Buyer email is required';
+        if (!formData.buyerInfo.confirmEmail?.trim()) e['buyer-confirmEmail'] = 'Email confirmation is required';
+        if (
+          formData.buyerInfo.email &&
+          formData.buyerInfo.confirmEmail &&
+          formData.buyerInfo.email !== formData.buyerInfo.confirmEmail
+        ) {
+          e['buyer-emailMismatch'] = 'Email addresses do not match';
         }
-        if (!formData.buyerInfo.phone) errors.push('Buyer phone number is required');
+        if (!formData.buyerInfo.phone?.trim()) e['buyer-phone'] = 'Buyer phone number is required';
         break;
       case 3:
-        if (!formData.paymentMethod) errors.push('Please select a payment method');
+        if (!formData.paymentMethod) e.paymentMethod = 'Please select a payment method';
         break;
       case 4:
-        if (!contractSignature.trim()) errors.push('Please type your full name to acknowledge the contract');
-        if (!formData.termsAccepted) errors.push('You must accept the terms and conditions to continue');
+        if (!contractSignature.trim()) e.contractSignature = 'Please type your full name to acknowledge the contract';
+        if (!formData.termsAccepted) e.termsAccepted = 'You must accept the terms and conditions to continue';
         break;
-      case 5:
-        // Payment step - no validation needed since we redirect to Stripe
-        break;
-      case 6:
-        // Summary step is always valid
+      default:
         break;
     }
-    
-    return errors;
+    return e;
   };
+
+  const getValidationErrors = (step: number): string[] => Object.values(getFieldErrors(step));
 
   const validateStep = (step: number): boolean => {
     return getValidationErrors(step).length === 0;
   };
 
-  const nextStep = async () => {
+  /** After paint, scroll the first inline error in the modal body into view */
+  const scrollFirstBookingErrorIntoView = () => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const root = document.querySelector('[data-booking-modal-body]');
+        if (!root) return;
+        const first = root.querySelector<HTMLElement>('[role="alert"]');
+        if (!first) return;
+        first.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      });
+    });
+  };
+
+  const nextStep = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, 6));
+      setStepsWithValidationShown((prev) => {
+        const next = new Set(prev);
+        next.delete(currentStep);
+        return next;
+      });
+      setCurrentStep((prev) => {
+        const n = Math.min(prev + 1, 6);
+        setMaxStepReached((m) => Math.max(m, n));
+        return n;
+      });
+    } else {
+      setStepsWithValidationShown((prev) => new Set(prev).add(currentStep));
+      scrollFirstBookingErrorIntoView();
     }
   };
 
   const prevStep = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1));
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  /** Back: always. Forward to step N: only if steps 1..N-1 all validate. */
+  const canNavigateToStep = (target: number): boolean => {
+    if (target < 1 || target > 6) return false;
+    if (target <= currentStep) return true;
+    for (let s = 1; s < target; s++) {
+      if (!validateStep(s)) return false;
+    }
+    return true;
+  };
+
+  const goToStep = (stepNumber: number) => {
+    if (stepNumber < 1 || stepNumber > 6) return;
+    if (stepNumber === currentStep) return;
+    if (stepNumber < currentStep) {
+      setCurrentStep(stepNumber);
+      return;
+    }
+    if (!canNavigateToStep(stepNumber)) {
+      for (let s = 1; s < stepNumber; s++) {
+        if (!validateStep(s)) {
+          setCurrentStep(s);
+          setStepsWithValidationShown((prev) => new Set(prev).add(s));
+          setTimeout(() => scrollFirstBookingErrorIntoView(), 0);
+          return;
+        }
+      }
+      return;
+    }
+    setCurrentStep(stepNumber);
+    setMaxStepReached((m) => Math.max(m, stepNumber));
   };
 
   const createStripeCheckout = async () => {
+    for (let s = 1; s <= 4; s++) {
+      if (!validateStep(s)) {
+        setCurrentStep(s);
+        setStepsWithValidationShown((prev) => new Set(prev).add(s));
+        setTimeout(() => scrollFirstBookingErrorIntoView(), 0);
+        return;
+      }
+    }
+
     setIsLoadingPayment(true);
-    
+
     try {
       const response = await fetch('/api/stripe/create-checkout', {
         method: 'POST',
@@ -430,6 +503,15 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
   };
 
   const handleSubmit = async () => {
+    for (let s = 1; s <= 4; s++) {
+      if (!validateStep(s)) {
+        setCurrentStep(s);
+        setStepsWithValidationShown((prev) => new Set(prev).add(s));
+        setTimeout(() => scrollFirstBookingErrorIntoView(), 0);
+        return;
+      }
+    }
+
     try {
       // For non-Stripe payments, save the booking
       if (formData.paymentMethod !== 'stripe') {
@@ -488,11 +570,20 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
 
   const displayedContractSections = showFullContract ? CONTRACT_SECTIONS : CONTRACT_SECTIONS.slice(0, 3);
 
+  const fieldErrors = getFieldErrors(currentStep);
+  const stepValid = validateStep(currentStep);
+  const showInlineFieldErrors =
+    stepsWithValidationShown.has(currentStep) && !stepValid;
+
+  const fieldMsg = (key: string) => (showInlineFieldErrors && fieldErrors[key] ? fieldErrors[key] : undefined);
+  const fieldRing = (key: string) =>
+    showInlineFieldErrors && fieldErrors[key] ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300';
+
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[95vh] overflow-hidden shadow-xl animate-scale-in border border-gray-100">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4 animate-fade-in">
+      <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[min(92vh,880px)] flex flex-col shadow-xl animate-scale-in border border-gray-100 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-teal-50">
+        <div className="flex-shrink-0 flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-teal-50">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">{packageData.packageName}</h2>
             <p className="text-gray-600 mt-1">{packageData.dates} • {packageData.duration}</p>
@@ -507,35 +598,77 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
           </button>
         </div>
 
-        {/* Progress Bar */}
-        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+        {/* Progress bar — original layout; steps clickable when allowed (forward only if prior steps valid) */}
+        <div className="flex-shrink-0 px-6 py-4 bg-gray-50 border-b border-gray-200">
           <div className="flex items-center justify-between mb-2">
-            {steps.map((step) => (
-              <div key={step.number} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ${
-                  step.number <= currentStep
-                    ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg'
-                    : 'bg-gray-200 text-gray-500'
-                }`}>
-                  {step.number}
+            {steps.map((step) => {
+              const lockedForward = step.number > currentStep && !canNavigateToStep(step.number);
+              const isActive = step.number === currentStep;
+              const isCompleted = step.number <= maxStepReached && step.number !== currentStep;
+              const circleClasses = isActive
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg'
+                : isCompleted
+                  ? 'bg-gray-200 text-gray-600 ring-2 ring-emerald-500 ring-offset-2 ring-offset-gray-50'
+                  : 'bg-gray-200 text-gray-500';
+              const labelClasses = isActive
+                ? 'text-emerald-700'
+                : isCompleted
+                  ? 'text-gray-600'
+                  : 'text-gray-500';
+              const segmentComplete = step.number < maxStepReached;
+              return (
+                <div key={step.number} className="flex items-center">
+                  <button
+                    type="button"
+                    disabled={lockedForward}
+                    onClick={() => goToStep(step.number)}
+                    className="flex items-center bg-transparent border-0 p-0 text-left disabled:cursor-not-allowed disabled:opacity-50 enabled:cursor-pointer"
+                    aria-current={isActive ? 'step' : undefined}
+                    aria-label={
+                      lockedForward
+                        ? `Step ${step.number}: complete previous steps first`
+                        : isCompleted
+                          ? `Step ${step.number} completed: ${step.title}. Go to this step`
+                          : `Go to ${step.title}`
+                    }
+                  >
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300 ${circleClasses}`}
+                    >
+                      {step.number}
+                    </div>
+                    <span className={`ml-2 text-sm font-medium transition-colors duration-300 ${labelClasses}`}>
+                      {step.title}
+                    </span>
+                  </button>
+                  {step.number < steps.length && (
+                    <div
+                      className={`w-12 h-0.5 mx-4 transition-colors duration-300 ${
+                        segmentComplete ? 'bg-gradient-to-r from-emerald-600 to-teal-600' : 'bg-gray-200'
+                      }`}
+                    />
+                  )}
                 </div>
-                <span className={`ml-2 text-sm font-medium transition-colors duration-300 ${
-                  step.number <= currentStep ? 'text-emerald-700' : 'text-gray-500'
-                }`}>
-                  {step.title}
-                </span>
-                {step.number < steps.length && (
-                  <div className={`w-12 h-0.5 mx-4 transition-colors duration-300 ${
-                    step.number < currentStep ? 'bg-gradient-to-r from-emerald-600 to-teal-600' : 'bg-gray-200'
-                  }`} />
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        {/* Form Content */}
-        <div className="p-8 overflow-y-auto max-h-[60vh]">
+        {/* Compact notice — details are inline under each field */}
+        {showInlineFieldErrors && (
+          <div
+            className="flex-shrink-0 px-4 sm:px-6 py-2.5 bg-red-50 border-b border-red-200"
+            role="status"
+            aria-live="polite"
+          >
+            <p className="text-sm text-red-800">
+              Please fix the highlighted fields below, then press Next again.
+            </p>
+          </div>
+        )}
+
+        {/* Form Content — scrolls independently */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-6 sm:p-8" data-booking-modal-body>
           {/* Step 1: Package Selection & Participant Info */}
           {currentStep === 1 && (
             <div className="space-y-8">
@@ -608,6 +741,12 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                   })}
                 </div>
 
+                {fieldMsg('spots') && (
+                  <p className="text-red-600 text-sm mt-3" role="alert">
+                    {fieldMsg('spots')}
+                  </p>
+                )}
+
                 {/* Summary Box */}
                 {getTotalSpots() > 0 && (
                   <div className="mt-6 p-6 bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-xl">
@@ -658,10 +797,14 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                               type="text"
                               value={participant.firstName}
                               onChange={(e) => handleParticipantChange(index, 'firstName', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500"
+                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500 ${fieldRing(`p${index}-firstName`)}`}
                               placeholder="Enter first name"
                               required
+                              aria-invalid={!!fieldMsg(`p${index}-firstName`)}
                             />
+                            {fieldMsg(`p${index}-firstName`) && (
+                              <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg(`p${index}-firstName`)}</p>
+                            )}
                           </div>
                           
                           {/* Last Name */}
@@ -671,22 +814,31 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                               type="text"
                               value={participant.lastName}
                               onChange={(e) => handleParticipantChange(index, 'lastName', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500"
+                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500 ${fieldRing(`p${index}-lastName`)}`}
                               placeholder="Enter last name"
                               required
+                              aria-invalid={!!fieldMsg(`p${index}-lastName`)}
                             />
+                            {fieldMsg(`p${index}-lastName`) && (
+                              <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg(`p${index}-lastName`)}</p>
+                            )}
                           </div>
                           
                           {/* Date of Birth */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Date of Birth *</label>
-                            <input
-                              type="date"
-                              value={participant.dateOfBirth}
-                              onChange={(e) => handleParticipantChange(index, 'dateOfBirth', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900"
-                              required
-                            />
+                            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor={`participant-${index}-dob`}>
+                              Date of Birth <span className="text-red-500" aria-hidden>*</span>
+                            </label>
+                            <div className={fieldMsg(`p${index}-dateOfBirth`) ? 'rounded-lg ring-1 ring-red-500' : ''}>
+                              <DateOfBirthPicker
+                                id={`participant-${index}-dob`}
+                                value={participant.dateOfBirth}
+                                onChange={(v) => handleParticipantChange(index, 'dateOfBirth', v)}
+                              />
+                            </div>
+                            {fieldMsg(`p${index}-dateOfBirth`) && (
+                              <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg(`p${index}-dateOfBirth`)}</p>
+                            )}
                           </div>
                           
                           {/* Gender */}
@@ -695,13 +847,17 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                             <select
                               value={participant.gender}
                               onChange={(e) => handleParticipantChange(index, 'gender', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900"
+                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 ${fieldRing(`p${index}-gender`)}`}
                               required
+                              aria-invalid={!!fieldMsg(`p${index}-gender`)}
                             >
                               <option value="">Select gender</option>
                               <option value="male">Male</option>
                               <option value="female">Female</option>
                             </select>
+                            {fieldMsg(`p${index}-gender`) && (
+                              <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg(`p${index}-gender`)}</p>
+                            )}
                           </div>
                           
                           {/* Phone */}
@@ -714,24 +870,33 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                                 const formatted = formatPhoneNumber(e.target.value);
                                 handleParticipantChange(index, 'phone', formatted);
                               }}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500"
+                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500 ${fieldRing(`p${index}-phone`)}`}
                               placeholder="xxx-xxx-xxxx"
                               maxLength={12}
                               required
+                              aria-invalid={!!fieldMsg(`p${index}-phone`)}
                             />
+                            {fieldMsg(`p${index}-phone`) && (
+                              <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg(`p${index}-phone`)}</p>
+                            )}
                           </div>
                           
-                          {/* Nationality */}
+                          {/* Nationality — country of citizenship */}
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Nationality *</label>
-                            <input
-                              type="text"
-                              value={participant.nationality}
-                              onChange={(e) => handleParticipantChange(index, 'nationality', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500"
-                              placeholder="Enter nationality"
-                              required
-                            />
+                            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor={`participant-${index}-nationality-select`}>
+                              Country of citizenship (nationality) <span className="text-red-500" aria-hidden>*</span>
+                            </label>
+                            <div className={fieldMsg(`p${index}-nationality`) ? 'rounded-lg ring-1 ring-red-500' : ''}>
+                              <CountrySelect
+                                inputId={`participant-${index}-nationality-select`}
+                                value={participant.nationality}
+                                onChange={(v) => handleParticipantChange(index, 'nationality', v)}
+                                placeholder="Search or select country…"
+                              />
+                            </div>
+                            {fieldMsg(`p${index}-nationality`) && (
+                              <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg(`p${index}-nationality`)}</p>
+                            )}
                           </div>
                           
                           {/* Passport Status */}
@@ -740,27 +905,35 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                             <select
                               value={participant.hasPassport}
                               onChange={(e) => handleParticipantChange(index, 'hasPassport', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900"
+                              className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 ${fieldRing(`p${index}-hasPassport`)}`}
                               required
+                              aria-invalid={!!fieldMsg(`p${index}-hasPassport`)}
                             >
                               <option value="">Select option</option>
                               <option value="yes">Yes, I have a valid passport</option>
                               <option value="no">No, I need to obtain one</option>
                             </select>
+                            {fieldMsg(`p${index}-hasPassport`) && (
+                              <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg(`p${index}-hasPassport`)}</p>
+                            )}
                           </div>
                           
-                          {/* Passport Issuing Country */}
                           {participant.hasPassport === 'yes' && (
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">Passport Issuing Country *</label>
-                              <input
-                                type="text"
-                                value={participant.passportNationality}
-                                onChange={(e) => handleParticipantChange(index, 'passportNationality', e.target.value)}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500"
-                                placeholder="Enter passport issuing country"
-                                required
-                              />
+                              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor={`participant-${index}-passport-country-select`}>
+                                Passport issuing country <span className="text-red-500" aria-hidden>*</span>
+                              </label>
+                              <div className={fieldMsg(`p${index}-passportNationality`) ? 'rounded-lg ring-1 ring-red-500' : ''}>
+                                <CountrySelect
+                                  inputId={`participant-${index}-passport-country-select`}
+                                  value={participant.passportNationality}
+                                  onChange={(v) => handleParticipantChange(index, 'passportNationality', v)}
+                                  placeholder="Search or select issuing country…"
+                                />
+                              </div>
+                              {fieldMsg(`p${index}-passportNationality`) && (
+                                <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg(`p${index}-passportNationality`)}</p>
+                              )}
                             </div>
                           )}
                         </div>
@@ -776,7 +949,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                                 <label className="block text-sm font-medium text-amber-800 mb-2">
                                   Will this person be traveling with a legal guardian?
                                 </label>
-                                <div className="flex gap-4">
+                                <div className={`flex gap-4 flex-wrap rounded-lg p-2 -m-2 ${fieldMsg(`p${index}-guardian`) ? 'ring-1 ring-red-500' : ''}`}>
                                   <label className="flex items-center">
                                     <input
                                       type="radio"
@@ -798,6 +971,9 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                                     <span className="text-sm text-amber-800">No, please contact us</span>
                                   </label>
                                 </div>
+                                {fieldMsg(`p${index}-guardian`) && (
+                                  <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg(`p${index}-guardian`)}</p>
+                                )}
                               </div>
                               
                               {/* Guardian Name Fields */}
@@ -809,10 +985,16 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                                       type="text"
                                       value={participant.guardianFirstName}
                                       onChange={(e) => handleParticipantChange(index, 'guardianFirstName', e.target.value)}
-                                      className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500 bg-white"
+                                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500 bg-white ${
+                                        fieldMsg(`p${index}-guardianFirstName`) ? 'border-red-500 ring-1 ring-red-500' : 'border-amber-300'
+                                      }`}
                                       placeholder="Enter guardian's first name"
                                       required
+                                      aria-invalid={!!fieldMsg(`p${index}-guardianFirstName`)}
                                     />
+                                    {fieldMsg(`p${index}-guardianFirstName`) && (
+                                      <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg(`p${index}-guardianFirstName`)}</p>
+                                    )}
                                   </div>
                                   <div>
                                     <label className="block text-sm font-medium text-amber-800 mb-1">Guardian Last Name *</label>
@@ -820,10 +1002,16 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                                       type="text"
                                       value={participant.guardianLastName}
                                       onChange={(e) => handleParticipantChange(index, 'guardianLastName', e.target.value)}
-                                      className="w-full px-3 py-2 border border-amber-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500 bg-white"
+                                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500 bg-white ${
+                                        fieldMsg(`p${index}-guardianLastName`) ? 'border-red-500 ring-1 ring-red-500' : 'border-amber-300'
+                                      }`}
                                       placeholder="Enter guardian's last name"
                                       required
+                                      aria-invalid={!!fieldMsg(`p${index}-guardianLastName`)}
                                     />
+                                    {fieldMsg(`p${index}-guardianLastName`) && (
+                                      <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg(`p${index}-guardianLastName`)}</p>
+                                    )}
                                   </div>
                                 </div>
                               )}
@@ -856,10 +1044,14 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                       type="text"
                       value={formData.buyerInfo.firstName}
                       onChange={(e) => handleInputChange('buyerInfo.firstName', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500"
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500 ${fieldRing('buyer-firstName')}`}
                       placeholder="Enter first name"
                       required
+                      aria-invalid={!!fieldMsg('buyer-firstName')}
                     />
+                    {fieldMsg('buyer-firstName') && (
+                      <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg('buyer-firstName')}</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
@@ -867,10 +1059,14 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                       type="text"
                       value={formData.buyerInfo.lastName}
                       onChange={(e) => handleInputChange('buyerInfo.lastName', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500"
+                      className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500 ${fieldRing('buyer-lastName')}`}
                       placeholder="Enter last name"
                       required
+                      aria-invalid={!!fieldMsg('buyer-lastName')}
                     />
+                    {fieldMsg('buyer-lastName') && (
+                      <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg('buyer-lastName')}</p>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -879,10 +1075,16 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                     type="email"
                     value={formData.buyerInfo.email}
                     onChange={(e) => handleInputChange('buyerInfo.email', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500 ${
+                      fieldMsg('buyer-email') || fieldMsg('buyer-emailMismatch') ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'
+                    }`}
                     placeholder="Enter email address"
                     required
+                    aria-invalid={!!fieldMsg('buyer-email') || !!fieldMsg('buyer-emailMismatch')}
                   />
+                  {fieldMsg('buyer-email') && (
+                    <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg('buyer-email')}</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Email Address *</label>
@@ -890,12 +1092,18 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                     type="email"
                     value={formData.buyerInfo.confirmEmail}
                     onChange={(e) => handleInputChange('buyerInfo.confirmEmail', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500 ${
+                      fieldMsg('buyer-confirmEmail') || fieldMsg('buyer-emailMismatch') ? 'border-red-500 ring-1 ring-red-500' : 'border-gray-300'
+                    }`}
                     placeholder="Confirm email address"
                     required
+                    aria-invalid={!!fieldMsg('buyer-confirmEmail') || !!fieldMsg('buyer-emailMismatch')}
                   />
-                  {formData.buyerInfo.email && formData.buyerInfo.confirmEmail && formData.buyerInfo.email !== formData.buyerInfo.confirmEmail && (
-                    <p className="text-red-500 text-xs mt-1">Email addresses do not match</p>
+                  {fieldMsg('buyer-confirmEmail') && (
+                    <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg('buyer-confirmEmail')}</p>
+                  )}
+                  {fieldMsg('buyer-emailMismatch') && (
+                    <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg('buyer-emailMismatch')}</p>
                   )}
                 </div>
                 <div>
@@ -907,11 +1115,15 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                       const formatted = formatPhoneNumber(e.target.value);
                       handleInputChange('buyerInfo.phone', formatted);
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500"
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm text-gray-900 placeholder-gray-500 ${fieldRing('buyer-phone')}`}
                     placeholder="xxx-xxx-xxxx"
                     maxLength={12}
                     required
+                    aria-invalid={!!fieldMsg('buyer-phone')}
                   />
+                  {fieldMsg('buyer-phone') && (
+                    <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg('buyer-phone')}</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -996,12 +1208,17 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
 
                 {/* Payment Method Options */}
                 <div className="space-y-4">
+                  {fieldMsg('paymentMethod') && (
+                    <p className="text-red-600 text-sm" role="alert">{fieldMsg('paymentMethod')}</p>
+                  )}
                   {/* Stripe Option */}
                   <div 
                     className={`border-2 rounded-xl p-6 cursor-pointer transition-all duration-200 ${
                       formData.paymentMethod === 'stripe' 
                         ? 'border-emerald-500 bg-emerald-50' 
-                        : 'border-gray-200 bg-white hover:border-emerald-300'
+                        : fieldMsg('paymentMethod')
+                          ? 'border-red-400 bg-red-50/30'
+                          : 'border-gray-200 bg-white hover:border-emerald-300'
                     }`}
                     onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'stripe' }))}
                   >
@@ -1051,7 +1268,9 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                     className={`border-2 rounded-xl p-6 cursor-pointer transition-all duration-200 ${
                       formData.paymentMethod === 'bank_transfer' 
                         ? 'border-emerald-500 bg-emerald-50' 
-                        : 'border-gray-200 bg-white hover:border-emerald-300'
+                        : fieldMsg('paymentMethod')
+                          ? 'border-red-400 bg-red-50/30'
+                          : 'border-gray-200 bg-white hover:border-emerald-300'
                     }`}
                     onClick={() => setFormData(prev => ({ ...prev, paymentMethod: 'bank_transfer' }))}
                   >
@@ -1160,16 +1379,26 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                     type="text"
                     value={contractSignature}
                     onChange={(e) => setContractSignature(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-300 text-gray-900"
+                    className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-300 text-gray-900 ${
+                      fieldMsg('contractSignature') ? 'border-red-500 ring-1 ring-red-500' : 'border-emerald-200'
+                    }`}
                     placeholder="Full name as it appears on your booking"
+                    aria-invalid={!!fieldMsg('contractSignature')}
                   />
+                  {fieldMsg('contractSignature') && (
+                    <p className="text-red-600 text-xs mt-1" role="alert">{fieldMsg('contractSignature')}</p>
+                  )}
                   <p className="text-xs text-emerald-700 mt-2">
                     By typing your full name you confirm that you have read and understand the agreement on behalf of all attendees in your booking.
                   </p>
                 </div>
 
                 {/* Terms Acceptance */}
-                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-6">
+                <div
+                  className={`bg-emerald-50 border rounded-lg p-6 ${
+                    fieldMsg('termsAccepted') ? 'border-red-400 ring-1 ring-red-500' : 'border-emerald-200'
+                  }`}
+                >
                   <div className="flex items-start gap-4">
                     <input
                       type="checkbox"
@@ -1177,6 +1406,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                       checked={!!formData.termsAccepted}
                       onChange={(e) => setFormData(prev => ({ ...prev, termsAccepted: e.target.checked }))}
                       className="mt-1 w-5 h-5 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+                      aria-invalid={!!fieldMsg('termsAccepted')}
                     />
                     <div className="flex-1">
                       <label htmlFor="termsAccepted" className="text-sm font-medium text-gray-900 cursor-pointer">
@@ -1185,6 +1415,9 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                       <p className="text-xs text-gray-600 mt-1">
                         Checking this box confirms that the information above is accurate and that you agree to the contract terms.
                       </p>
+                      {fieldMsg('termsAccepted') && (
+                        <p className="text-red-600 text-xs mt-2" role="alert">{fieldMsg('termsAccepted')}</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1365,32 +1598,8 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
           )}
         </div>
 
-        {/* Validation Errors */}
-        {!validateStep(currentStep) && (
-          <div className="px-6 py-4 bg-red-50 border-t border-red-200">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0">
-                <svg className="w-5 h-5 text-red-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <h4 className="text-sm font-semibold text-red-800 mb-2">Please complete the following:</h4>
-                <ul className="text-sm text-red-700 space-y-1">
-                  {getValidationErrors(currentStep).map((error, index) => (
-                    <li key={index} className="flex items-start gap-2">
-                      <span className="text-red-500 mt-1">•</span>
-                      <span>{error}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
+        <div className="flex-shrink-0 flex items-center justify-between p-4 sm:p-6 border-t border-gray-200 bg-gray-50 gap-3">
           <button
             onClick={prevStep}
             disabled={currentStep === 1}
@@ -1404,13 +1613,9 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
             null
           ) : currentStep < 6 ? (
             <button
+              type="button"
               onClick={nextStep}
-              disabled={!validateStep(currentStep)}
-              className={`px-6 py-2 rounded-lg font-medium transition-all duration-200 shadow-sm ${
-                validateStep(currentStep)
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
+              className="px-6 py-2 rounded-lg font-medium transition-all duration-200 shadow-sm bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:from-emerald-700 hover:to-teal-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
             >
               {currentStep === 3 ? 'Continue to Terms' : currentStep === 4 ? 'Continue to Payment' : currentStep === 5 ? 'Continue to Summary' : 'Next'}
             </button>
