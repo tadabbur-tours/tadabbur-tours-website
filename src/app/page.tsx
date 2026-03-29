@@ -12,30 +12,14 @@ import {
   GallerySection,
   ContactSection,
 } from '@/components/sections';
-import { GALLERY_SLIDES, SACRED_SITES } from '@/config/site';
 
 const NAVBAR_OFFSET = 80;
 const SCROLL_PADDING = 20;
 
 export default function Home() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [currentSacredSite, setCurrentSacredSite] = useState(0);
   const [floatingCtaVisible, setFloatingCtaVisible] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const interval = setInterval(() => setCurrentSlide((prev) => (prev + 1) % GALLERY_SLIDES.length), 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const interval = setInterval(
-      () => setCurrentSacredSite((prev) => (prev + 1) % SACRED_SITES.length),
-      6000
-    );
-    return () => clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,15 +43,6 @@ export default function Home() {
     }
   };
 
-  const changeSlide = (direction: number) => {
-    setCurrentSlide((prev) => {
-      const next = prev + direction;
-      if (next < 0) return GALLERY_SLIDES.length - 1;
-      if (next >= GALLERY_SLIDES.length) return 0;
-      return next;
-    });
-  };
-
   return (
     <BookingModalProvider>
       <div className="min-h-screen bg-white">
@@ -86,20 +61,9 @@ export default function Home() {
 
         <AboutSection />
 
-        <TafSeerahSection
-          currentSacredSite={currentSacredSite}
-          onPrevSacredSite={() =>
-            setCurrentSacredSite((prev) => (prev - 1 + SACRED_SITES.length) % SACRED_SITES.length)
-          }
-          onNextSacredSite={() => setCurrentSacredSite((prev) => (prev + 1) % SACRED_SITES.length)}
-          onGoToSacredSite={setCurrentSacredSite}
-        />
+        <TafSeerahSection />
 
-        <GallerySection
-          currentSlide={currentSlide}
-          onChangeSlide={changeSlide}
-          onGoToSlide={setCurrentSlide}
-        />
+        <GallerySection />
 
         <ContactSection />
 

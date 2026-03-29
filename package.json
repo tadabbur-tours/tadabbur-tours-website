@@ -16,6 +16,8 @@
     "@vercel/analytics": "^1.6.1",
     "country-list": "^2.4.1",
     "date-fns": "^4.1.0",
+    "embla-carousel-autoplay": "^8.6.0",
+    "embla-carousel-react": "^8.6.0",
     "googleapis": "^164.1.0",
     "next": "^15.5.9",
     "react": "19.1.0",
