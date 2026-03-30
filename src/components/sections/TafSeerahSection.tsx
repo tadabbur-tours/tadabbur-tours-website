@@ -89,7 +89,9 @@ export default function TafSeerahSection() {
                       src={`/${site.image}`}
                       alt=""
                       fill
-                      className="object-cover"
+                      className={`object-cover ${
+                        site.name === "Ta'if" ? 'object-[60%_75%]' : 'object-center'
+                      }`}
                       sizes="(max-width: 768px) 100vw, 896px"
                       priority={i === 0}
                     />
