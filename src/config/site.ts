@@ -73,32 +73,37 @@ export const SACRED_SITES: SacredSite[] = [
 
 export const TESTIMONIALS: Testimonial[] = [
   {
-    text: "Thank you all for your services and hard work you did for us to make us very comfortable. I really enjoyed your company in Omrah. I wish you all the best and a blessed Omrah Makboula, insha'Allah. Auntie Fatima.",
+    text: "Thank you all for your services and hard work you did for us to make us very comfortable. I really enjoyed your company in Omraa. I wish you all the best and Omraa Makboula inchalah.",
     author: 'Fatima Azami',
     stars: 5,
   },
   {
-    text: "We would like to thank the Tabbour Family for giving us this experience, and the staff were very knowledgeable and helpful. Thank you again for the friendship and kindness that were given to us. May Allah Subhanahu Wa Ta'ala reward you for your efforts.",
+    text: "We would like to thank the Tabbour Family for giving us this experience and the staffs are very knowledgeable and helpful. Thank you again for the friendship and kindness that were given to us. May Allah Subhanahu Wa Ta'ala reward you for your efforts.",
     author: 'Rozani Rashid',
     stars: 5,
   },
   {
-    text: "Thank you so much for arranging such a wonderful trip. Visiting a place and truly experiencing it are two very different things, and the entire Taddabur team brought those experiences to life beautifully. We truly appreciate the sincere effort and care you put into every detail. May Allah accept it from you and from us. Aameen.",
+    text: "Thank you so much for arranging such a wonderful trip. Visiting a place and truly experiencing it are two very different things, and the entire Taddabur team brought those experiences to life beautifully. We truly appreciate all the sincere effort and care you put into every detail. May Allah accept it from you and from us. Aameen.",
     author: 'Maeda Muneeb',
     stars: 5,
   },
   {
-    text: "Assalamu'alaikum. Dear Tadabbur Family. We would like to thank everyone for the wonderful Umrah experience and all the interesting side trips that went on. We learned a lot. The leaders of the Tadabbur know their subject very well. It was a pleasure to meet all the brothers and sisters. It was a trip of a lifetime.",
+    text: "I just wanted to take a moment to say JAK to each and every one of you for making our Umrah journey so special. Especially our sisters’ leaders 🫶🏽❤️. Sharing Allah’s house, the duas, the tawaf, and all the moments in between with such a beautiful group was truly a blessing we will always cherish.",
+    author: 'Nimo Salah',
+    stars: 5,
+  },
+  {
+    text: "Assalamu'alaikum. Dear Tadabbur Family. We would like to thank everyone for the wonderful Umrah experience and all the interesting side trips that went on. We learned a lot. The leaders of the Tadabbur know their subject very well. It was a pleasure to meet all the brothers and sisters; it was a trip of a lifetime.",
     author: 'Michael Lindgren',
     stars: 5,
   },
   {
-    text: "Alhamdulillah. I thank you all my brothers and the organizers, and my dear uncles for helping my wife and me perform Umrah. It is because of all your help that we were able to complete Umrah and visit some important places along the Seerah of Prophet peace be upon him. Alhamdulillah. The organizers of our group made everything so easy for all of us. We did not have to worry about anything. Everything was wonderful. Also, I appreciate the camaraderie of all of you brothers. It was a great honor to team up with a great group of people like you under the leadership of capable, endearing, always helpful, and very knowledgeable group of young and energetic people. Also my wife and I request your forgiveness for our shortcomings or any offensive comments or behavior. We will always remember and cherish your kindness. May Allah bless you all and your families.",
+    text: "The organizers of our group made everything so easy for all of us. We did not have to worry about anything. They were wonderful. Also I appreciate the camaraderie of all of you brothers. It was a great honor to team up with a great group of people like you under the leadership of capable, endearing, always helpful and very knowledgeable group of young and energetic people. We will always remember and cherish your kindness. It was great to get to know you all. May Allah bless you all and your families.",
     author: 'Mohammad Rashid',
     stars: 5,
   },
   {
-    text: "Thank you for putting together such a meaningful and thoughtfully guided Umrah trip. Being present in the sacred places is powerful on its own, but being guided to truly understand their significance, history, and purpose made this journey far deeper and more impactful. The intention, care, and sincerity behind every aspect of the trip were clear from start to finish. A heartfelt thank you to the entire Tadabbur team for planning and delivering an Umrah experience that went far beyond rituals. The balance of ibadah, learning, reflection, and the companionship of fellow brothers and sisters created an atmosphere that was both uplifting and grounding. Every activity was carefully planned and exceptionally well organized. The team worked tirelessly to ensure no detail was overlooked and that every individual felt supported and cared for throughout the journey, and it truly showed. The local luxury food experience in Taif and all the museum visits were truly special once-in-a-lifetime experiences that added a rich and beautiful dimension to the journey. We are deeply grateful for your dedication, service, and commitment. May Allah accept all of your efforts, place immense barakah in them, and reward you abundantly in this world and the hereafter. Aameen. Truly proud to be part of the Tadabbur tribe!",
+    text: "Thank you for putting together such a meaningful and thoughtfully guided Umrah trip. Being present in the sacred places is powerful on its own, but being guided to truly understand their significance, history, and purpose made this journey far deeper and more impactful. The intention, care, and sincerity behind every aspect of the trip were clear from start to finish. A heartfelt thank you to the entire Tadabbur team for planning and delivering an Umrah experience that went far beyond rituals. The balance of ibadah, learning, reflection, and the companionship of fellow brothers and sisters created an atmosphere that was both uplifting and grounding. Every activity was carefully planned and exceptionally well organized. The team worked tirelessly to ensure no detail was overlooked and that every individual felt supported and cared for throughout the journey and it truly showed. The local luxury food experience in Taif and all the museum visits were truly special once-in-a-lifetime experiences that added a rich and beautiful dimension to the journey. We are deeply grateful for your dedication, service, and commitment. May Allah accept all of your efforts, place immense barakah in them, and reward you abundantly in this world and the hereafter. Aameen. Truly proud to be part of the Tadabbur tribe!",
     author: 'Muneeb Ahmed',
     stars: 5,
   },
@@ -108,7 +113,7 @@ export const TESTIMONIALS: Testimonial[] = [
     stars: 5,
   },
   {
-    text: "You guys are awesome MashaAllah! Can't ask for more.",
+    text: "You guys are awesome MashaAllah! Can’t ask for more.",
     author: 'Afzal Mohideen Syed Mohamed',
     stars: 5,
   },
