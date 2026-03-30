@@ -53,29 +53,65 @@ export const GALLERY_SLIDES = [
   'captured-moments-2.JPG',
   'captured-moments-3.JPG',
   'captured-moments-4.JPG',
-  'captured-moments-5.JPG',
+  'gallery-3.JPG',
   'captured-moments-6.JPG',
   'captured-moments-7.JPG',
   'captured-moments-8.JPG',
   'gallery-1.JPG',
   'gallery-2.JPG',
-  'gallery-3.JPG',
+  'captured-moments-9.JPG',
 ];
 
 export const SACRED_SITES: SacredSite[] = [
   { name: 'Makkah', image: 'ts26-makkah.jpeg', description: 'Experience the spiritual center of Islam. Perform Umrah at the Ka\'bah and walk in the footsteps of Prophet Ibrahim (AS).' },
   { name: 'Jabal Nur', image: 'ts26-jabal-al-nur.JPG', description: 'Stand at the Cave of Hira where the first revelation "Iqra" descended upon Prophet Muhammad (SAW).' },
-  { name: 'Madinah', image: 'ts25-madinah.jpeg', description: 'Visit the Prophet\'s Mosque and experience the blessed Rawdah, a piece of Jannah on earth.' },
+  { name: 'Madinah', image: 'ts25-madinah.JPG', description: 'Visit the Prophet\'s Mosque and experience the blessed Rawdah, a piece of Jannah on earth.' },
   { name: 'Mount Uhud', image: 'ts26-uhud.JPG', description: 'Reflect on the lessons of the Battle of Uhud and visit the graves of the martyrs including Hamza (RA).' },
   { name: 'Badr', image: 'ts26-badr.JPG', description: 'Walk the battlefield where 313 believers faced impossible odds with divine assistance.' },
   { name: 'Ta\'if', image: 'ts26-taif.JPG', description: 'Trace the difficult journey of the Prophet (SAW) and understand his perseverance in the face of rejection.' },
 ];
 
 export const TESTIMONIALS: Testimonial[] = [
-  { text: "It's an experience I'll cherish forever and hope to revisit, insha'Allah.", author: 'Abdullahi A.', stars: 5 },
-  { text: "I don't think this trip will ever be outbeat.", author: '— Hanad A.', stars: 5 },
-  { text: 'Wonderful itinerary and meaningful reflections. Highly recommend Tadabbur for a transformative Umrah.', author: '— Fatima R.', stars: 5 },
-  { text: 'Professional team, inspiring sessions, and smooth logistics. It exceeded my expectations.', author: '— Muhammad A.', stars: 5 },
+  {
+    text: "Thank you all for your services and hard work you did for us to make us very comfortable. I really enjoyed your company in Omrah. I wish you all the best and a blessed Omrah Makboula, insha'Allah. Auntie Fatima.",
+    author: 'Fatima Azami',
+    stars: 5,
+  },
+  {
+    text: "We would like to thank the Tabbour Family for giving us this experience, and the staff were very knowledgeable and helpful. Thank you again for the friendship and kindness that were given to us. May Allah Subhanahu Wa Ta'ala reward you for your efforts.",
+    author: 'Rozani Rashid',
+    stars: 5,
+  },
+  {
+    text: "Thank you so much for arranging such a wonderful trip. Visiting a place and truly experiencing it are two very different things, and the entire Taddabur team brought those experiences to life beautifully. We truly appreciate the sincere effort and care you put into every detail. May Allah accept it from you and from us. Aameen.",
+    author: 'Maeda Muneeb',
+    stars: 5,
+  },
+  {
+    text: "Assalamu'alaikum. Dear Tadabbur Family. We would like to thank everyone for the wonderful Umrah experience and all the interesting side trips that went on. We learned a lot. The leaders of the Tadabbur know their subject very well. It was a pleasure to meet all the brothers and sisters. It was a trip of a lifetime.",
+    author: 'Michael Lindgren',
+    stars: 5,
+  },
+  {
+    text: "Alhamdulillah. I thank you all my brothers and the organizers, and my dear uncles for helping my wife and me perform Umrah. It is because of all your help that we were able to complete Umrah and visit some important places along the Seerah of Prophet peace be upon him. Alhamdulillah. The organizers of our group made everything so easy for all of us. We did not have to worry about anything. Everything was wonderful. Also, I appreciate the camaraderie of all of you brothers. It was a great honor to team up with a great group of people like you under the leadership of capable, endearing, always helpful, and very knowledgeable group of young and energetic people. Also my wife and I request your forgiveness for our shortcomings or any offensive comments or behavior. We will always remember and cherish your kindness. May Allah bless you all and your families.",
+    author: 'Mohammad Rashid',
+    stars: 5,
+  },
+  {
+    text: "Thank you for putting together such a meaningful and thoughtfully guided Umrah trip. Being present in the sacred places is powerful on its own, but being guided to truly understand their significance, history, and purpose made this journey far deeper and more impactful. The intention, care, and sincerity behind every aspect of the trip were clear from start to finish. A heartfelt thank you to the entire Tadabbur team for planning and delivering an Umrah experience that went far beyond rituals. The balance of ibadah, learning, reflection, and the companionship of fellow brothers and sisters created an atmosphere that was both uplifting and grounding. Every activity was carefully planned and exceptionally well organized. The team worked tirelessly to ensure no detail was overlooked and that every individual felt supported and cared for throughout the journey, and it truly showed. The local luxury food experience in Taif and all the museum visits were truly special once-in-a-lifetime experiences that added a rich and beautiful dimension to the journey. We are deeply grateful for your dedication, service, and commitment. May Allah accept all of your efforts, place immense barakah in them, and reward you abundantly in this world and the hereafter. Aameen. Truly proud to be part of the Tadabbur tribe!",
+    author: 'Muneeb Ahmed',
+    stars: 5,
+  },
+  {
+    text: "Thank you to the entire Taf-Seerah team for an amazing and truly memorable Umrah trip. Beyond the deep spiritual experience, the whole journey was enriched with history, learning, and the wonderful company of our brothers and sisters. Even though there were some airline-related issues that were beyond your control, everything else went perfectly fine. The trip was very well organized and managed on time, and all the arrangements were excellent. It truly reflected the team’s dedication and hard work in ensuring a smooth and meaningful experience for everyone. We are truly grateful to the entire Taf-Seerah team for your hard work, dedication, and commitment. May Allah accept all your efforts and reward you abundantly in this world and in the hereafter. Ameen.",
+    author: 'Sohail Ahmed',
+    stars: 5,
+  },
+  {
+    text: "You guys are awesome MashaAllah! Can't ask for more.",
+    author: 'Afzal Mohideen Syed Mohamed',
+    stars: 5,
+  },
 ];
 
 export const EXPERIENCE_FEATURES = [
