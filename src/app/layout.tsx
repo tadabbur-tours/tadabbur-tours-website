@@ -35,11 +35,9 @@ const neuePlak = localFont({
   variable: "--font-neue-plak",
 });
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.tadabburtours.com";
+const sharePreviewImage = "https://www.tadabburtours.com/tt-logo.jpg";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
   title: "Tadabbur Tours",
   description: "Experience the transformative journey of reflecting on Allah's words in the very lands where revelation shaped hearts and history.",
   openGraph: {
@@ -48,7 +46,7 @@ export const metadata: Metadata = {
       "Experience the transformative journey of reflecting on Allah's words in the very lands where revelation shaped hearts and history.",
     images: [
       {
-        url: "/tt-logo.jpg",
+        url: sharePreviewImage,
         width: 500,
         height: 500,
         alt: "Tadabbur Tours",
@@ -60,7 +58,7 @@ export const metadata: Metadata = {
     title: "Tadabbur Tours",
     description:
       "Experience the transformative journey of reflecting on Allah's words in the very lands where revelation shaped hearts and history.",
-    images: ["/tt-logo.jpg"],
+    images: [sharePreviewImage],
   },
   icons: {
     icon: [
