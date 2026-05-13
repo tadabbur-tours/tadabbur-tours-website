@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import CountrySelect from '@/components/CountrySelect';
 import DateOfBirthPicker from '@/components/DateOfBirthPicker';
-import { FINAL_TRIP_BALANCE_DUE_LABEL } from '@/config/site';
+import { FINAL_TRIP_BALANCE_DUE_LABEL, SECOND_TRIP_INSTALLMENT_DUE_LABEL } from '@/config/site';
+import { packageSupportsThreeInstallmentOffer } from '@/booking/installment-policy';
 import {
   BOOKING_ROOM_OPTIONS,
   computeCheckoutAmounts,
@@ -13,6 +14,7 @@ import {
   priceUsdLabel,
   spotRateUsd,
   totalPackageCents,
+  type InstallmentPlan,
 } from '@/booking/pricing';
 
 interface BookingModalProps {
@@ -168,6 +170,11 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
   const [contractSignature, setContractSignature] = useState('');
   /** After user clicks Next (or nav forces validation), show inline errors until the step validates */
   const [stepsWithValidationShown, setStepsWithValidationShown] = useState<Set<number>>(new Set());
+  const [installmentPlan, setInstallmentPlan] = useState<InstallmentPlan>('two');
+  const [janSpecialtyCodeInput, setJanSpecialtyCodeInput] = useState('');
+  const [janSpecialtyCodeForCheckout, setJanSpecialtyCodeForCheckout] = useState('');
+  const [janInstallmentMessage, setJanInstallmentMessage] = useState<string | null>(null);
+  const [janInstallmentValidating, setJanInstallmentValidating] = useState(false);
 
   const steps = [
     { number: 1, title: 'Package & Participants' },
@@ -177,6 +184,14 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
     { number: 5, title: 'Payment' },
     { number: 6, title: 'Summary' }
   ];
+
+  useEffect(() => {
+    setInstallmentPlan('two');
+    setJanSpecialtyCodeInput('');
+    setJanSpecialtyCodeForCheckout('');
+    setJanInstallmentMessage(null);
+    setJanInstallmentValidating(false);
+  }, [packageData.packageId]);
 
   useEffect(() => {
     if (isOpen) {
@@ -198,6 +213,11 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
       setStepsWithValidationShown(new Set());
       setCurrentStep(1);
       setMaxStepReached(1);
+      setInstallmentPlan('two');
+      setJanSpecialtyCodeInput('');
+      setJanSpecialtyCodeForCheckout('');
+      setJanInstallmentMessage(null);
+      setJanInstallmentValidating(false);
     }
   }, [isOpen]);
 
@@ -252,6 +272,49 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
   }, [formData.spots, participantCount, getTotalSpots]);
 
   if (!isOpen) return null;
+
+  const effectiveInstallmentPlan: InstallmentPlan = packageSupportsThreeInstallmentOffer(
+    packageData.packageId
+  )
+    ? installmentPlan
+    : 'two';
+
+  const applyJanSpecialtyInstallmentCode = async () => {
+    if (!packageSupportsThreeInstallmentOffer(packageData.packageId)) return;
+    const trimmed = janSpecialtyCodeInput.trim();
+    if (!trimmed) {
+      setJanInstallmentMessage('Enter the reference, then Apply.');
+      return;
+    }
+    setJanInstallmentValidating(true);
+    try {
+      const res = await fetch('/api/booking/validate-installment-coupon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: trimmed, packageId: packageData.packageId }),
+      });
+      const data = (await res.json()) as { eligiblePackage?: boolean; threeInstallments?: boolean };
+      if (!data.eligiblePackage) {
+        setInstallmentPlan('two');
+        setJanSpecialtyCodeForCheckout('');
+        setJanInstallmentMessage('This reference could not be applied.');
+        return;
+      }
+      if (data.threeInstallments) {
+        setInstallmentPlan('three');
+        setJanSpecialtyCodeForCheckout(trimmed);
+        setJanInstallmentMessage('Applied.');
+      } else {
+        setInstallmentPlan('two');
+        setJanSpecialtyCodeForCheckout('');
+        setJanInstallmentMessage('That reference is not valid.');
+      }
+    } catch {
+      setJanInstallmentMessage('Something went wrong. Try again.');
+    } finally {
+      setJanInstallmentValidating(false);
+    }
+  };
 
   const handleInputChange = (field: string, value: string) => {
     if (field.includes('.')) {
@@ -479,7 +542,12 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
           participants: formData.participants,
           totalAmount: totalPackageCents(formData.spots),
           participantCount: getTotalSpots(),
-          paymentMethod: formData.paymentMethod
+          paymentMethod: formData.paymentMethod,
+          ...(packageSupportsThreeInstallmentOffer(packageData.packageId) &&
+          installmentPlan === 'three' &&
+          janSpecialtyCodeForCheckout.trim()
+            ? { installmentPlanCoupon: janSpecialtyCodeForCheckout.trim() }
+            : {}),
         })
       });
 
@@ -1121,17 +1189,24 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                   <h4 className="font-semibold text-gray-900 mb-4">Payment Schedule</h4>
                   {(() => {
                     const pm = formData.paymentMethod === 'bank_transfer' ? 'bank_transfer' : 'stripe';
-                    const a = computeCheckoutAmounts(formData.spots, pm);
+                    const a = computeCheckoutAmounts(formData.spots, pm, {
+                      installmentPlan: effectiveInstallmentPlan,
+                    });
+                    const three = a.installmentPlan === 'three';
                     const totalDeposit = dollarsFromCents(a.depositCents);
                     const processingFee = dollarsFromCents(a.processingFeeCents);
                     const totalToday = dollarsFromCents(a.totalChargeCents);
                     const finalPayment = dollarsFromCents(a.balanceCents);
                     const packageLabel = formatCentsAsUsd(a.totalPackageCents, 0);
+                    const secondCents = three ? a.futureInstallmentAmountsCents[0] : undefined;
+                    const thirdCents = three ? a.futureInstallmentAmountsCents[1] : undefined;
 
                     return (
                       <div className="space-y-2 text-sm text-gray-900">
                         <div className="flex justify-between">
-                          <span className="text-gray-900">Deposit today (50%):</span>
+                          <span className="text-gray-900">
+                            {three ? 'Today\'s payment:' : 'Deposit today (50%):'}
+                          </span>
                           <span className="font-semibold text-gray-900">{formatUsd(totalDeposit, 2)}</span>
                         </div>
                         <div className="flex justify-between">
@@ -1142,10 +1217,33 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                           <span className="text-gray-900">Total Today:</span>
                           <span className="text-gray-900">{formatUsd(totalToday, 2)}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-900">Final payment (50%) — due {FINAL_TRIP_BALANCE_DUE_LABEL}:</span>
-                          <span className="font-semibold text-gray-900">{formatUsd(finalPayment, 2)}</span>
-                        </div>
+                        {three && secondCents !== undefined && thirdCents !== undefined ? (
+                          <>
+                            <div className="flex justify-between">
+                              <span className="text-gray-900">
+                                Next payment — due {SECOND_TRIP_INSTALLMENT_DUE_LABEL}:
+                              </span>
+                              <span className="font-semibold text-gray-900">
+                                {formatCentsAsUsd(secondCents, 2)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-900">
+                                Final payment — due {FINAL_TRIP_BALANCE_DUE_LABEL}:
+                              </span>
+                              <span className="font-semibold text-gray-900">
+                                {formatCentsAsUsd(thirdCents, 2)}
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex justify-between">
+                            <span className="text-gray-900">
+                              Final payment (50%) — due {FINAL_TRIP_BALANCE_DUE_LABEL}:
+                            </span>
+                            <span className="font-semibold text-gray-900">{formatUsd(finalPayment, 2)}</span>
+                          </div>
+                        )}
                         <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
                           <span className="text-gray-900">Total Package:</span>
                           <span className="text-gray-900">{packageLabel}</span>
@@ -1154,6 +1252,62 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                     );
                   })()}
                 </div>
+
+                {packageSupportsThreeInstallmentOffer(packageData.packageId) && getTotalSpots() > 0 && (
+                  <details className="rounded-lg border border-gray-200 bg-gray-50/90 text-left">
+                    <summary className="cursor-pointer select-none px-3 py-2.5 text-sm text-gray-600 hover:bg-gray-100/80 rounded-lg">
+                      <span className="font-medium text-gray-700">Booking reference (optional)</span>
+                    </summary>
+                    <div className="px-3 pb-3 pt-0 border-t border-gray-200/80">
+                      <p className="text-xs text-gray-500 mt-2 mb-2.5">
+                        Use only if our team asked you to enter something here.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-2 sm:items-stretch">
+                        <div className="flex-1 min-w-0">
+                          <label htmlFor="booking-arrangement-ref" className="sr-only">
+                            Booking reference
+                          </label>
+                          <input
+                            id="booking-arrangement-ref"
+                            type="text"
+                            autoComplete="off"
+                            value={janSpecialtyCodeInput}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setJanSpecialtyCodeInput(v);
+                              setJanInstallmentMessage(null);
+                              if (
+                                installmentPlan === 'three' &&
+                                v.trim() !== janSpecialtyCodeForCheckout.trim()
+                              ) {
+                                setInstallmentPlan('two');
+                                setJanSpecialtyCodeForCheckout('');
+                              }
+                            }}
+                            className="w-full px-2.5 py-1.5 border border-gray-300 rounded-md focus:ring-1 focus:ring-gray-400 focus:border-gray-400 text-sm text-gray-900 placeholder-gray-400 bg-white"
+                            placeholder="Reference"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => void applyJanSpecialtyInstallmentCode()}
+                          disabled={janInstallmentValidating}
+                          className="shrink-0 px-3 py-1.5 rounded-md bg-gray-200 text-gray-800 text-sm font-medium hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-gray-300/80"
+                        >
+                          {janInstallmentValidating ? '…' : 'Apply'}
+                        </button>
+                      </div>
+                      {janInstallmentMessage && (
+                        <p
+                          className={`text-xs mt-2 ${installmentPlan === 'three' ? 'text-gray-700' : 'text-gray-600'}`}
+                          role="status"
+                        >
+                          {janInstallmentMessage}
+                        </p>
+                      )}
+                    </div>
+                  </details>
+                )}
 
                 {/* Payment Method Options */}
                 <div className="space-y-4">
@@ -1179,7 +1333,11 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                       </div>
                       <div className="flex-1">
                         <h4 className="text-lg font-semibold text-gray-900">Credit/Debit Card (Stripe)</h4>
-                        <p className="text-gray-600 text-sm">Pay securely online; remaining balance due {FINAL_TRIP_BALANCE_DUE_LABEL}</p>
+                        <p className="text-gray-600 text-sm">
+                          {effectiveInstallmentPlan === 'three'
+                            ? 'Pay securely online — amounts and dates are in the schedule above.'
+                            : `Pay securely online; remaining balance due ${FINAL_TRIP_BALANCE_DUE_LABEL}`}
+                        </p>
                       </div>
                       <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                         formData.paymentMethod === 'stripe' 
@@ -1201,9 +1359,27 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                 <div>
                             <h6 className="font-medium text-blue-800 mb-1">How it works:</h6>
                             <ul className="text-xs text-blue-700 space-y-1">
-                              <li>• Pay 50% of your total package cost today to secure your booking</li>
-                              <li>• We&apos;ll send you a payment link for the remaining 50% before {FINAL_TRIP_BALANCE_DUE_LABEL}</li>
-                              <li>• You&apos;ll receive an email reminder before the balance is due</li>
+                              {effectiveInstallmentPlan === 'three' ? (
+                                <>
+                                  <li>
+                                    • Today&apos;s charge matches the &quot;Total Today&quot; line above
+                                    (processing applies to this charge only).
+                                  </li>
+                                  <li>
+                                    • Further amounts are due on the dates shown in the schedule.
+                                  </li>
+                                  <li>• We&apos;ll email you before each due date.</li>
+                                </>
+                              ) : (
+                                <>
+                                  <li>• Pay 50% of your total package cost today to secure your booking</li>
+                                  <li>
+                                    • We&apos;ll send you a payment link for the remaining 50% before{' '}
+                                    {FINAL_TRIP_BALANCE_DUE_LABEL}
+                                  </li>
+                                  <li>• You&apos;ll receive an email reminder before the balance is due</li>
+                                </>
+                              )}
                             </ul>
                           </div>
                         </div>
@@ -1252,10 +1428,27 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                           <div>
                             <h6 className="font-medium text-blue-800 mb-1">How it works:</h6>
                             <ul className="text-xs text-blue-700 space-y-1">
-                              <li>• Pay 50% of your total package cost via ACH or wire transfer</li>
-                              <li>• Secure payment processing through Stripe</li>
-                              <li>• We&apos;ll send you a payment link for the remaining 50% before {FINAL_TRIP_BALANCE_DUE_LABEL}</li>
-                              <li>• You&apos;ll receive an email reminder before the balance is due</li>
+                              {effectiveInstallmentPlan === 'three' ? (
+                                <>
+                                  <li>
+                                    • Today&apos;s amount matches the schedule above (processing on this charge
+                                    only).
+                                  </li>
+                                  <li>• Secure payment processing through Stripe</li>
+                                  <li>• Further payments follow the dates shown above.</li>
+                                  <li>• We&apos;ll email you before each due date.</li>
+                                </>
+                              ) : (
+                                <>
+                                  <li>• Pay 50% of your total package cost via ACH or wire transfer</li>
+                                  <li>• Secure payment processing through Stripe</li>
+                                  <li>
+                                    • We&apos;ll send you a payment link for the remaining 50% before{' '}
+                                    {FINAL_TRIP_BALANCE_DUE_LABEL}
+                                  </li>
+                                  <li>• You&apos;ll receive an email reminder before the balance is due</li>
+                                </>
+                              )}
                             </ul>
                           </div>
                         </div>
@@ -1391,12 +1584,17 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
           {/* Step 5: Payment */}
           {currentStep === 5 && (() => {
             const pm = formData.paymentMethod === 'bank_transfer' ? 'bank_transfer' : 'stripe';
-            const a = computeCheckoutAmounts(formData.spots, pm);
+            const a = computeCheckoutAmounts(formData.spots, pm, {
+              installmentPlan: effectiveInstallmentPlan,
+            });
+            const three = a.installmentPlan === 'three';
             const totalDeposit = dollarsFromCents(a.depositCents);
             const processingFee = dollarsFromCents(a.processingFeeCents);
             const totalToday = dollarsFromCents(a.totalChargeCents);
             const remaining = dollarsFromCents(a.balanceCents);
             const packageLabel = formatCentsAsUsd(a.totalPackageCents, 0);
+            const secondCents = three ? a.futureInstallmentAmountsCents[0] : undefined;
+            const thirdCents = three ? a.futureInstallmentAmountsCents[1] : undefined;
 
             return (
               <div>
@@ -1410,20 +1608,48 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                       <span className="text-2xl">{formData.paymentMethod === 'stripe' ? '💳' : '🏦'}</span>
                     </div>
                     <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                      {formData.paymentMethod === 'stripe' ? 'Ready to Pay Your 50% Deposit' : 'Bank Transfer Instructions'}
+                      {formData.paymentMethod === 'stripe'
+                        ? three
+                          ? 'Continue to secure payment'
+                          : 'Ready to Pay Your 50% Deposit'
+                        : 'Bank Transfer Instructions'}
                     </h4>
                     <p className="text-gray-600 mb-6">
-                      {formData.paymentMethod === 'stripe' 
-                        ? `Click the button below to securely pay your ${formatUsd(totalDeposit, 2)} deposit (50% of your package). We will send a link for the remaining 50% before ${FINAL_TRIP_BALANCE_DUE_LABEL}.`
-                        : `We'll send you bank transfer details after booking confirmation. Please pay your ${formatUsd(totalDeposit, 2)} deposit within 48 hours.`
-                      }
+                      {formData.paymentMethod === 'stripe' ? (
+                        three ? (
+                          <>
+                            Click the button below to pay {formatUsd(totalToday, 2)} securely (today&apos;s line
+                            from your schedule, including processing on this charge). We&apos;ll follow up with
+                            details for the remaining amounts before {SECOND_TRIP_INSTALLMENT_DUE_LABEL} and{' '}
+                            {FINAL_TRIP_BALANCE_DUE_LABEL}.
+                          </>
+                        ) : (
+                          <>
+                            Click the button below to securely pay your {formatUsd(totalDeposit, 2)} deposit
+                            (50% of your package). We will send a link for the remaining 50% before{' '}
+                            {FINAL_TRIP_BALANCE_DUE_LABEL}.
+                          </>
+                        )
+                      ) : three ? (
+                        <>
+                          We&apos;ll send you bank transfer details after booking confirmation. Please pay{' '}
+                          {formatUsd(totalDeposit, 2)} within 48 hours (today&apos;s line from your schedule).
+                        </>
+                      ) : (
+                        <>
+                          We&apos;ll send you bank transfer details after booking confirmation. Please pay your{' '}
+                          {formatUsd(totalDeposit, 2)} deposit within 48 hours.
+                        </>
+                      )}
                     </p>
                     
                     <div className="bg-gray-50 rounded-lg p-6 mb-6 max-w-md mx-auto">
                       <h5 className="font-semibold text-gray-900 mb-3">Payment Summary</h5>
                       <div className="space-y-2 text-sm text-gray-900">
                         <div className="flex justify-between">
-                          <span className="text-gray-900">Deposit today (50%):</span>
+                          <span className="text-gray-900">
+                            {three ? 'Today\'s payment:' : 'Deposit today (50%):'}
+                          </span>
                           <span className="font-semibold text-gray-900">{formatUsd(totalDeposit, 2)}</span>
                         </div>
                         <div className="flex justify-between">
@@ -1434,10 +1660,33 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                           <span className="text-gray-900">Total Today:</span>
                           <span className="text-gray-900">{formatUsd(totalToday, 2)}</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-900">Final payment (50%) — due {FINAL_TRIP_BALANCE_DUE_LABEL}:</span>
-                          <span className="font-semibold text-gray-900">{formatUsd(remaining, 2)}</span>
-                        </div>
+                        {three && secondCents !== undefined && thirdCents !== undefined ? (
+                          <>
+                            <div className="flex justify-between">
+                              <span className="text-gray-900">
+                                Next payment — due {SECOND_TRIP_INSTALLMENT_DUE_LABEL}:
+                              </span>
+                              <span className="font-semibold text-gray-900">
+                                {formatCentsAsUsd(secondCents, 2)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-900">
+                                Final payment — due {FINAL_TRIP_BALANCE_DUE_LABEL}:
+                              </span>
+                              <span className="font-semibold text-gray-900">
+                                {formatCentsAsUsd(thirdCents, 2)}
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex justify-between">
+                            <span className="text-gray-900">
+                              Final payment (50%) — due {FINAL_TRIP_BALANCE_DUE_LABEL}:
+                            </span>
+                            <span className="font-semibold text-gray-900">{formatUsd(remaining, 2)}</span>
+                          </div>
+                        )}
                         <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
                           <span className="text-gray-900">Total Package:</span>
                           <span className="text-gray-900">{packageLabel}</span>
