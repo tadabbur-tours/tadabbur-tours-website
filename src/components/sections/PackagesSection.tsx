@@ -10,6 +10,7 @@ interface PackagesSectionProps {
 function getPackageImage(pkgId: string): string {
   if (pkgId === 'january') return "url('/jan.png')";
   if (pkgId === 'august') return "url('/aug.png')";
+  if (pkgId === 'january-extended') return "url('/Dec2026.png')";
   return "url('/Dec2026.png')";
 }
 

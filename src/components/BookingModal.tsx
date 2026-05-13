@@ -3,6 +3,17 @@
 import { useState, useEffect } from 'react';
 import CountrySelect from '@/components/CountrySelect';
 import DateOfBirthPicker from '@/components/DateOfBirthPicker';
+import { FINAL_TRIP_BALANCE_DUE_LABEL } from '@/config/site';
+import {
+  BOOKING_ROOM_OPTIONS,
+  computeCheckoutAmounts,
+  dollarsFromCents,
+  formatCentsAsUsd,
+  formatUsd,
+  priceUsdLabel,
+  spotRateUsd,
+  totalPackageCents,
+} from '@/booking/pricing';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -67,13 +78,13 @@ const CONTRACT_SECTIONS: ContractSection[] = [
     heading: 'Payment Schedule & Participant Responsibility',
     body: [
       'The Participant acknowledges and agrees to the payment schedule as presented during the registration process. Payment amounts and due dates are displayed when selecting a payment method.',
-      'All package prices are per person. If a Participant registers multiple people, they are responsible for the full payment of all individuals they registered. Each installment will reflect the total amount due for all registered participants.'
+      'All package prices are per person. If a Participant registers multiple people, they are responsible for the full payment of all individuals they registered. The remaining balance reflects the total amount due for all registered participants.'
     ]
   },
   {
     heading: 'Refund Policy',
     body: [
-      'The initial deposit is refundable until February 1, 2026. After flight tickets have been purchased, no refunds will be processed under any circumstances.',
+      'The initial deposit is refundable until November 1, 2026. After flight tickets have been purchased, no refunds will be processed under any circumstances.',
       'The registered participant (signee) assumes full financial responsibility for all individuals included in their booking or package.',
       'All refunds will be issued to the original method of payment. If the original payment method is unavailable, Tadabbur Tours may issue the refund via check or bank transfer at its sole discretion.'
     ]
@@ -157,12 +168,6 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
   const [contractSignature, setContractSignature] = useState('');
   /** After user clicks Next (or nav forces validation), show inline errors until the step validates */
   const [stepsWithValidationShown, setStepsWithValidationShown] = useState<Set<number>>(new Set());
-
-  const roomOptions = [
-    { type: 'quad', price: '$3,750', priceNum: 3750, capacity: 4, description: 'Shared room with 3 other people' },
-    { type: 'triple', price: '$3,950', priceNum: 3950, capacity: 3, description: 'Shared room with 2 other people' },
-    { type: 'dual', price: '$4,200', priceNum: 4200, capacity: 2, description: 'Shared room with 1 other person' }
-  ];
 
   const steps = [
     { number: 1, title: 'Package & Participants' },
@@ -472,7 +477,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
           spots: formData.spots,
           buyerInfo: formData.buyerInfo,
           participants: formData.participants,
-          totalAmount: getAmountInCents(),
+          totalAmount: totalPackageCents(formData.spots),
           participantCount: getTotalSpots(),
           paymentMethod: formData.paymentMethod
         })
@@ -525,7 +530,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
             buyerInfo: formData.buyerInfo,
             participants: formData.participants,
             paymentMethod: formData.paymentMethod,
-            totalAmount: getAmountInCents()
+            totalAmount: totalPackageCents(formData.spots)
           })
         });
 
@@ -541,31 +546,6 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
       console.error('Booking error:', error);
       alert('Booking failed. Please try again.');
     }
-  };
-
-  const getAmountInCents = (): number => {
-    // Price is per spot (per person)
-    const dualTotal = formData.spots.dual * 420000;
-    const tripleTotal = formData.spots.triple * 395000;
-    const quadTotal = formData.spots.quad * 375000;
-    return dualTotal + tripleTotal + quadTotal;
-  };
-
-  const getSelectedRoomPrice = () => {
-    // Price is per spot (per person)
-    const dualTotal = formData.spots.dual * 4200;
-    const tripleTotal = formData.spots.triple * 3950;
-    const quadTotal = formData.spots.quad * 3750;
-    const totalPrice = dualTotal + tripleTotal + quadTotal;
-    return `$${totalPrice.toLocaleString()}`;
-  };
-
-  const getSelectedRoomPriceNumber = () => {
-    // Price is per spot (per person)
-    const dualTotal = formData.spots.dual * 4200;
-    const tripleTotal = formData.spots.triple * 3950;
-    const quadTotal = formData.spots.quad * 3750;
-    return dualTotal + tripleTotal + quadTotal;
   };
 
   const displayedContractSections = showFullContract ? CONTRACT_SECTIONS : CONTRACT_SECTIONS.slice(0, 3);
@@ -678,12 +658,13 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                 <p className="text-sm text-gray-600 mb-6">Choose how many spots you need in each room type. Each spot is for 1 person.</p>
                 
                 <div className="space-y-4">
-                  {roomOptions.map((room) => {
-                    const roomType = room.type as 'dual' | 'triple' | 'quad';
+                  {BOOKING_ROOM_OPTIONS.map((room) => {
+                    const roomType = room.type;
                     const spots = formData.spots[roomType];
-                    const pricePerSpot = room.priceNum;
-                    const subtotal = spots * pricePerSpot;
-                    
+                    const rateUsd = spotRateUsd(roomType);
+                    const priceLabel = priceUsdLabel(rateUsd);
+                    const subtotalUsd = spots * rateUsd;
+
                     return (
                   <div
                     key={room.type}
@@ -698,7 +679,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                           <div className="flex-1">
                             <div className="flex items-baseline gap-3 mb-2">
                               <h4 className="text-lg font-bold text-gray-900 capitalize">{room.type} Room</h4>
-                              <span className="text-2xl font-bold text-emerald-600">{room.price}</span>
+                              <span className="text-2xl font-bold text-emerald-600">{priceLabel}</span>
                               <span className="text-sm text-gray-500">per person</span>
                             </div>
                             <p className="text-gray-600 text-sm mb-1">{room.description}</p>
@@ -706,7 +687,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                             {spots > 0 && (
                               <div className="mt-2">
                                 <span className="text-sm font-semibold text-emerald-700">
-                                  {spots} {spots === 1 ? 'spot' : 'spots'} × {room.price} = ${subtotal.toLocaleString()}
+                                  {spots} {spots === 1 ? 'spot' : 'spots'} × {priceLabel} = {formatUsd(subtotalUsd, 0)}
                                 </span>
                               </div>
                             )}
@@ -769,7 +750,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                       <div className="text-right">
                         <p className="text-sm text-gray-600 mb-1">Total Price</p>
                         <p className="text-3xl font-bold text-emerald-600">
-                          ${((formData.spots.dual * 4200) + (formData.spots.triple * 3950) + (formData.spots.quad * 3750)).toLocaleString()}
+                          {formatCentsAsUsd(totalPackageCents(formData.spots), 0)}
                         </p>
                         <p className="text-xs text-gray-500 mt-1">for {getTotalSpots()} {getTotalSpots() === 1 ? 'person' : 'people'}</p>
                       </div>
@@ -1139,67 +1120,35 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                 <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-200 rounded-xl p-6">
                   <h4 className="font-semibold text-gray-900 mb-4">Payment Schedule</h4>
                   {(() => {
-                    const totalPackage = getSelectedRoomPriceNumber();
-                    const totalPeople = getTotalSpots();
-                    const depositPerPerson = 750;
-                    const totalDeposit = depositPerPerson * totalPeople;
-                    const remaining = totalPackage - totalDeposit;
-                    const installmentAmount = Math.round((remaining / 3) * 100) / 100; // Round to 2 decimals
-                    
-                    // Calculate processing fee on total deposit
-                    const baseAmount = totalDeposit * 100; // Convert to cents
-                    const cardFeeRate = 0.029; // 2.9%
-                    const cardFixedFee = 30; // $0.30 in cents
-                    const achFeeRate = 0.008; // 0.8%
-                    const achMaxFee = 500; // $5.00 in cents
-                    
-                    let processingFeeCents = 0;
-                    if (formData.paymentMethod === 'bank_transfer') {
-                      processingFeeCents = Math.min(Math.round(baseAmount * achFeeRate), achMaxFee);
-                    } else {
-                      processingFeeCents = Math.round(baseAmount * cardFeeRate) + cardFixedFee;
-                    }
-                    const processingFee = processingFeeCents / 100; // Convert back to dollars
-                    
-                    const totalToday = totalDeposit + processingFee;
-                    // Adjust last installment to account for rounding
-                    const installment1 = installmentAmount;
-                    const installment2 = installmentAmount;
-                    const installment3 = totalPackage - totalDeposit - installment1 - installment2; // Ensure exact total
-                    
+                    const pm = formData.paymentMethod === 'bank_transfer' ? 'bank_transfer' : 'stripe';
+                    const a = computeCheckoutAmounts(formData.spots, pm);
+                    const totalDeposit = dollarsFromCents(a.depositCents);
+                    const processingFee = dollarsFromCents(a.processingFeeCents);
+                    const totalToday = dollarsFromCents(a.totalChargeCents);
+                    const finalPayment = dollarsFromCents(a.balanceCents);
+                    const packageLabel = formatCentsAsUsd(a.totalPackageCents, 0);
+
                     return (
                       <div className="space-y-2 text-sm text-gray-900">
                         <div className="flex justify-between">
-                          <span className="text-gray-900">Deposit (Today):</span>
-                          <span className="font-semibold text-gray-900">${totalDeposit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                          <span className="text-gray-900">Deposit today (50%):</span>
+                          <span className="font-semibold text-gray-900">{formatUsd(totalDeposit, 2)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-900">Processing Fee:</span>
-                          <span className="font-semibold text-gray-900">
-                            ${processingFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
+                          <span className="font-semibold text-gray-900">{formatUsd(processingFee, 2)}</span>
                         </div>
                         <div className="border-t border-gray-200 pt-1 flex justify-between font-semibold">
                           <span className="text-gray-900">Total Today:</span>
-                          <span className="text-gray-900">
-                            ${totalToday.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
+                          <span className="text-gray-900">{formatUsd(totalToday, 2)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-900">Installment 1:</span>
-                          <span className="font-semibold text-gray-900">${installment1.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-900">Installment 2:</span>
-                          <span className="font-semibold text-gray-900">${installment2.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-900">Installment 3:</span>
-                          <span className="font-semibold text-gray-900">${installment3.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                          <span className="text-gray-900">Final payment (50%) — due {FINAL_TRIP_BALANCE_DUE_LABEL}:</span>
+                          <span className="font-semibold text-gray-900">{formatUsd(finalPayment, 2)}</span>
                         </div>
                         <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
                           <span className="text-gray-900">Total Package:</span>
-                          <span className="text-gray-900">{getSelectedRoomPrice()}</span>
+                          <span className="text-gray-900">{packageLabel}</span>
                         </div>
                       </div>
                     );
@@ -1230,7 +1179,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                       </div>
                       <div className="flex-1">
                         <h4 className="text-lg font-semibold text-gray-900">Credit/Debit Card (Stripe)</h4>
-                        <p className="text-gray-600 text-sm">Pay securely online with automatic installment setup</p>
+                        <p className="text-gray-600 text-sm">Pay securely online; remaining balance due {FINAL_TRIP_BALANCE_DUE_LABEL}</p>
                       </div>
                       <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                         formData.paymentMethod === 'stripe' 
@@ -1252,10 +1201,9 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                 <div>
                             <h6 className="font-medium text-blue-800 mb-1">How it works:</h6>
                             <ul className="text-xs text-blue-700 space-y-1">
-                              <li>• Pay your $750 deposit today to secure your booking</li>
-                              <li>• We&apos;ll send you payment links for future installments</li>
-                              <li>• Installments are due monthly starting next month</li>
-                              <li>• You&apos;ll receive email reminders before each payment</li>
+                              <li>• Pay 50% of your total package cost today to secure your booking</li>
+                              <li>• We&apos;ll send you a payment link for the remaining 50% before {FINAL_TRIP_BALANCE_DUE_LABEL}</li>
+                              <li>• You&apos;ll receive an email reminder before the balance is due</li>
                             </ul>
                           </div>
                         </div>
@@ -1304,10 +1252,10 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                           <div>
                             <h6 className="font-medium text-blue-800 mb-1">How it works:</h6>
                             <ul className="text-xs text-blue-700 space-y-1">
-                              <li>• Pay your $750 deposit via ACH or wire transfer</li>
+                              <li>• Pay 50% of your total package cost via ACH or wire transfer</li>
                               <li>• Secure payment processing through Stripe</li>
-                              <li>• We&apos;ll send you payment links for future installments</li>
-                              <li>• You&apos;ll receive email reminders before each payment</li>
+                              <li>• We&apos;ll send you a payment link for the remaining 50% before {FINAL_TRIP_BALANCE_DUE_LABEL}</li>
+                              <li>• You&apos;ll receive an email reminder before the balance is due</li>
                             </ul>
                           </div>
                         </div>
@@ -1442,30 +1390,14 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
 
           {/* Step 5: Payment */}
           {currentStep === 5 && (() => {
-            // Calculate payment amounts
-            const totalPackage = getSelectedRoomPriceNumber();
-            const totalPeople = getTotalSpots();
-            const depositPerPerson = 750;
-            const totalDeposit = depositPerPerson * totalPeople;
-            const remaining = totalPackage - totalDeposit;
-            
-            // Calculate processing fee on total deposit
-            const baseAmount = totalDeposit * 100; // Convert to cents
-            const cardFeeRate = 0.029; // 2.9%
-            const cardFixedFee = 30; // $0.30 in cents
-            const achFeeRate = 0.008; // 0.8%
-            const achMaxFee = 500; // $5.00 in cents
-            
-            let processingFeeCents = 0;
-            if (formData.paymentMethod === 'bank_transfer') {
-              processingFeeCents = Math.min(Math.round(baseAmount * achFeeRate), achMaxFee);
-            } else {
-              processingFeeCents = Math.round(baseAmount * cardFeeRate) + cardFixedFee;
-            }
-            const processingFee = processingFeeCents / 100; // Convert back to dollars
-            
-            const totalToday = totalDeposit + processingFee;
-            
+            const pm = formData.paymentMethod === 'bank_transfer' ? 'bank_transfer' : 'stripe';
+            const a = computeCheckoutAmounts(formData.spots, pm);
+            const totalDeposit = dollarsFromCents(a.depositCents);
+            const processingFee = dollarsFromCents(a.processingFeeCents);
+            const totalToday = dollarsFromCents(a.totalChargeCents);
+            const remaining = dollarsFromCents(a.balanceCents);
+            const packageLabel = formatCentsAsUsd(a.totalPackageCents, 0);
+
             return (
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">Complete Your Payment</h3>
@@ -1478,12 +1410,12 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                       <span className="text-2xl">{formData.paymentMethod === 'stripe' ? '💳' : '🏦'}</span>
                     </div>
                     <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                      {formData.paymentMethod === 'stripe' ? 'Ready to Pay Your Deposit' : 'Bank Transfer Instructions'}
+                      {formData.paymentMethod === 'stripe' ? 'Ready to Pay Your 50% Deposit' : 'Bank Transfer Instructions'}
                     </h4>
                     <p className="text-gray-600 mb-6">
                       {formData.paymentMethod === 'stripe' 
-                        ? `Click the button below to securely pay your $${totalDeposit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} deposit and set up your installment plan.`
-                        : `We'll send you bank transfer details after booking confirmation. Please pay your $${totalDeposit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} deposit within 48 hours.`
+                        ? `Click the button below to securely pay your ${formatUsd(totalDeposit, 2)} deposit (50% of your package). We will send a link for the remaining 50% before ${FINAL_TRIP_BALANCE_DUE_LABEL}.`
+                        : `We'll send you bank transfer details after booking confirmation. Please pay your ${formatUsd(totalDeposit, 2)} deposit within 48 hours.`
                       }
                     </p>
                     
@@ -1491,28 +1423,24 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                       <h5 className="font-semibold text-gray-900 mb-3">Payment Summary</h5>
                       <div className="space-y-2 text-sm text-gray-900">
                         <div className="flex justify-between">
-                          <span className="text-gray-900">Deposit (Today):</span>
-                          <span className="font-semibold text-gray-900">${totalDeposit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                          <span className="text-gray-900">Deposit today (50%):</span>
+                          <span className="font-semibold text-gray-900">{formatUsd(totalDeposit, 2)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-900">Processing Fee:</span>
-                          <span className="font-semibold text-gray-900">
-                            ${processingFee.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
+                          <span className="font-semibold text-gray-900">{formatUsd(processingFee, 2)}</span>
                         </div>
                         <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
                           <span className="text-gray-900">Total Today:</span>
-                          <span className="text-gray-900">
-                            ${totalToday.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
+                          <span className="text-gray-900">{formatUsd(totalToday, 2)}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-900">Future Installments:</span>
-                          <span className="font-semibold text-gray-900">${remaining.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                          <span className="text-gray-900">Final payment (50%) — due {FINAL_TRIP_BALANCE_DUE_LABEL}:</span>
+                          <span className="font-semibold text-gray-900">{formatUsd(remaining, 2)}</span>
                         </div>
                         <div className="border-t border-gray-200 pt-2 flex justify-between font-semibold">
                           <span className="text-gray-900">Total Package:</span>
-                          <span className="text-gray-900">{getSelectedRoomPrice()}</span>
+                          <span className="text-gray-900">{packageLabel}</span>
                         </div>
                       </div>
                     </div>
@@ -1528,7 +1456,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                       onClick={createStripeCheckout}
                       className="w-full max-w-md bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-4 px-8 rounded-lg font-semibold text-lg hover:from-emerald-700 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-xl"
                     >
-                      Pay ${totalToday.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Now
+                      Pay {formatUsd(totalToday, 2)} Now
                     </button>
                   )}
                   
@@ -1556,13 +1484,13 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                   <span className="font-semibold block mb-2 text-gray-900">Room Spots Selected:</span>
                   <div className="ml-4 space-y-1 text-sm text-gray-900">
                     {formData.spots.dual > 0 && (
-                      <p>• {formData.spots.dual} {formData.spots.dual === 1 ? 'spot' : 'spots'} in Dual rooms ({formData.spots.dual} × $4,200)</p>
+                      <p>• {formData.spots.dual} {formData.spots.dual === 1 ? 'spot' : 'spots'} in Dual rooms ({formData.spots.dual} × {priceUsdLabel(spotRateUsd('dual'))})</p>
                     )}
                     {formData.spots.triple > 0 && (
-                      <p>• {formData.spots.triple} {formData.spots.triple === 1 ? 'spot' : 'spots'} in Triple rooms ({formData.spots.triple} × $3,950)</p>
+                      <p>• {formData.spots.triple} {formData.spots.triple === 1 ? 'spot' : 'spots'} in Triple rooms ({formData.spots.triple} × {priceUsdLabel(spotRateUsd('triple'))})</p>
                     )}
                     {formData.spots.quad > 0 && (
-                      <p>• {formData.spots.quad} {formData.spots.quad === 1 ? 'spot' : 'spots'} in Quad rooms ({formData.spots.quad} × $3,750)</p>
+                      <p>• {formData.spots.quad} {formData.spots.quad === 1 ? 'spot' : 'spots'} in Quad rooms ({formData.spots.quad} × {priceUsdLabel(spotRateUsd('quad'))})</p>
                     )}
                     <p className="font-semibold text-emerald-600 mt-2">
                       Total: {getTotalSpots()} {getTotalSpots() === 1 ? 'person' : 'people'}
@@ -1590,7 +1518,7 @@ export default function BookingModal({ isOpen, onClose, packageData }: BookingMo
                     <span className="text-gray-900">
                       Total Price (for {getTotalSpots()} {getTotalSpots() === 1 ? 'person' : 'people'}):
                     </span>
-                    <span className="text-emerald-600">{getSelectedRoomPrice()}</span>
+                    <span className="text-emerald-600">{formatCentsAsUsd(totalPackageCents(formData.spots), 0)}</span>
                   </div>
                 </div>
               </div>

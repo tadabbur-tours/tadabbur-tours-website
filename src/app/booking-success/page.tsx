@@ -3,6 +3,8 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { FINAL_TRIP_BALANCE_DUE_LABEL } from '@/config/site';
+import { computeCheckoutAmounts } from '@/booking/pricing';
 
 function BookingSuccessContent() {
   const searchParams = useSearchParams();
@@ -22,12 +24,13 @@ function BookingSuccessContent() {
       // In a real app, you'd fetch booking details from your database
       // For now, we'll simulate the data
       setTimeout(() => {
+        const demo = computeCheckoutAmounts({ dual: 0, triple: 0, quad: 1 }, 'stripe');
         setBookingDetails({
-          packageName: 'Umrah Package',
-          totalAmount: 375000, // $3,750 in cents
-          depositAmount: 75000, // $750 in cents
-          remainingAmount: 300000, // $3,000 in cents
-          installmentDates: ['January 1, 2025', 'February 1, 2025', 'March 1, 2025'],
+          packageName: 'January Umrah',
+          totalAmount: demo.totalPackageCents,
+          depositAmount: demo.depositCents,
+          remainingAmount: demo.balanceCents,
+          installmentDates: [FINAL_TRIP_BALANCE_DUE_LABEL],
           participantCount: 1
         });
         setLoading(false);
@@ -91,15 +94,15 @@ function BookingSuccessContent() {
               <span className="font-medium">{bookingDetails?.participantCount} people</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Total Amount:</span>
+              <span className="text-gray-600">Total package:</span>
               <span className="font-medium">${(bookingDetails?.totalAmount || 0) / 100}</span>
             </div>
             <div className="flex justify-between text-emerald-600">
-              <span>Deposit Paid:</span>
+              <span>Deposit paid (50%):</span>
               <span className="font-semibold">${(bookingDetails?.depositAmount || 0) / 100}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Remaining Balance:</span>
+              <span className="text-gray-600">Remaining balance (50%):</span>
               <span className="font-medium">${(bookingDetails?.remainingAmount || 0) / 100}</span>
             </div>
           </div>
@@ -112,21 +115,25 @@ function BookingSuccessContent() {
           <div className="space-y-3">
             <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-lg">
               <div>
-                <p className="font-medium text-emerald-800">Deposit</p>
+                <p className="font-medium text-emerald-800">Deposit (50%)</p>
                 <p className="text-sm text-emerald-600">Paid today</p>
               </div>
-              <span className="font-semibold text-emerald-600">$750</span>
+              <span className="font-semibold text-emerald-600">${(bookingDetails?.depositAmount || 0) / 100}</span>
             </div>
-            
-            {bookingDetails?.installmentDates?.map((date: string, index: number) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-800">Installment {index + 1}</p>
-                  <p className="text-sm text-gray-600">Due {date}</p>
+
+            {bookingDetails?.installmentDates?.map((date: string, index: number) => {
+              const n = bookingDetails.installmentDates.length || 1;
+              const amountCents = (bookingDetails.remainingAmount || 0) / n;
+              return (
+                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-gray-800">Final payment (50%)</p>
+                    <p className="text-sm text-gray-600">Due {date}</p>
+                  </div>
+                  <span className="font-semibold text-gray-600">${amountCents / 100}</span>
                 </div>
-                <span className="font-semibold text-gray-600">$1,000</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -139,7 +146,7 @@ function BookingSuccessContent() {
             <div>
               <h3 className="font-semibold text-amber-800 mb-2">Important Information</h3>
               <ul className="text-sm text-amber-700 space-y-1">
-                <li>• You will receive email reminders before each installment is due</li>
+                <li>• You will receive an email reminder before your final balance is due</li>
                 <li>• Payment links will be sent to your email address</li>
                 <li>• Please ensure your contact information is up to date</li>
                 <li>• Contact us if you need to modify your payment schedule</li>
@@ -155,7 +162,7 @@ function BookingSuccessContent() {
             <li>• You&apos;ll receive a confirmation email within 24 hours</li>
             <li>• Travel documents and itinerary will be sent 30 days before departure</li>
             <li>• We'll contact you to finalize travel arrangements</li>
-            <li>• Keep an eye on your email for installment reminders</li>
+            <li>• Keep an eye on your email for the balance payment link</li>
           </ul>
         </div>
 
