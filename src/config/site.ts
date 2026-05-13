@@ -14,6 +14,10 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Contact Us', sectionId: 'contact' },
 ];
 
+/** Remaining 50% trip balance due (matches Stripe checkout metadata / reminders). */
+export const FINAL_TRIP_BALANCE_DUE_LABEL = 'December 15, 2026';
+export const FINAL_TRIP_BALANCE_DUE_DATE = new Date('2026-12-15T12:00:00.000Z');
+
 export const PACKAGES: Package[] = [
   {
     id: 'january',
@@ -26,12 +30,11 @@ export const PACKAGES: Package[] = [
     soldOut: true,
   },
   {
-    id: 'december',
-    name: 'December Umrah',
+    id: 'january-extended',
+    name: 'January Umrah',
     price: '$3,750',
-    duration: '10 days',
-    /** Abbrev. months so the range fits one line in package cards */
-    dates: 'Dec 23, 2026 – Jan 3, 2027',
+    duration: '11 days',
+    dates: 'Wed Jan 13 – Sun Jan 23, 2027',
     tagline: 'A premium experience at a competitive price',
     status: 'standard',
     soldOut: false,
