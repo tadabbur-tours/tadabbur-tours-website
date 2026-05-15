@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { FINAL_TRIP_BALANCE_DUE_DATE, FINAL_TRIP_BALANCE_DUE_LABEL } from '@/config/site';
+import {
+  FINAL_TRIP_BALANCE_DUE_DATE,
+  FINAL_TRIP_BALANCE_DUE_LABEL,
+  SECOND_TRIP_INSTALLMENT_DUE_DATE,
+  SECOND_TRIP_INSTALLMENT_DUE_LABEL,
+} from '@/config/site';
+import { resolveCheckoutInstallmentPlan } from '@/booking/installment-plan';
 import {
   computeCheckoutAmounts,
   normalizeRoomSpots,
   spotCountTotal,
   type CheckoutPaymentMethod,
+  type InstallmentPlan,
 } from '@/booking/pricing';
 
 const stripe = process.env.STRIPE_SECRET_KEY
@@ -33,6 +40,7 @@ export async function POST(request: NextRequest) {
       totalAmount,
       participantCount,
       paymentMethod,
+      installmentPlanCoupon,
     } = body;
 
     if (!buyerInfo.email || typeof buyerInfo.email !== 'string' || !buyerInfo.email.includes('@')) {
@@ -49,7 +57,12 @@ export async function POST(request: NextRequest) {
     const paymentMethodNorm: CheckoutPaymentMethod =
       paymentMethod === 'bank_transfer' ? 'bank_transfer' : 'stripe';
 
-    const amounts = computeCheckoutAmounts(spots, paymentMethodNorm);
+    const installmentPlan: InstallmentPlan = resolveCheckoutInstallmentPlan(
+      packageId,
+      installmentPlanCoupon
+    );
+
+    const amounts = computeCheckoutAmounts(spots, paymentMethodNorm, { installmentPlan });
 
     if (amounts.totalPackageCents <= 0) {
       return NextResponse.json({ error: 'Select at least one spot' }, { status: 400 });
@@ -83,18 +96,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const installmentDates: Date[] = [FINAL_TRIP_BALANCE_DUE_DATE];
+    const installmentDates: Date[] =
+      installmentPlan === 'three'
+        ? [SECOND_TRIP_INSTALLMENT_DUE_DATE, FINAL_TRIP_BALANCE_DUE_DATE]
+        : [FINAL_TRIP_BALANCE_DUE_DATE];
+
     const baseAmount = amounts.depositCents;
     const processingFee = amounts.processingFeeCents;
     const totalChargeAmount = amounts.totalChargeCents;
 
-    const lineItems = [
+    const depositTitle =
+      installmentPlan === 'three'
+        ? `${packageName} — 1st installment (⅓)`
+        : `${packageName} — 50% deposit`;
+    const depositDescription =
+      installmentPlan === 'three'
+        ? `First of three equal installments for ${participantCountNum} ${participantCountNum === 1 ? 'person' : 'people'}. Next: ${SECOND_TRIP_INSTALLMENT_DUE_LABEL}; then ${FINAL_TRIP_BALANCE_DUE_LABEL}.`
+        : `50% deposit for ${participantCountNum} ${participantCountNum === 1 ? 'person' : 'people'}. Remaining balance due ${FINAL_TRIP_BALANCE_DUE_LABEL}.`;
+
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
       {
         price_data: {
           currency: 'usd',
           product_data: {
-            name: `${packageName} - 50% deposit`,
-            description: `50% deposit for ${participantCountNum} ${participantCountNum === 1 ? 'person' : 'people'}. Remaining balance due ${FINAL_TRIP_BALANCE_DUE_LABEL}.`,
+            name: depositTitle,
+            description: depositDescription,
           },
           unit_amount: baseAmount,
         },
@@ -153,13 +179,17 @@ export async function POST(request: NextRequest) {
         quadSpots: spotsNorm.quad.toString(),
         totalSpots: expectedHeadcount.toString(),
         participantCount: participantCountNum.toString(),
-        participantNames: participants
-          .map((p: { firstName: string; lastName: string }) => `${p.firstName} ${p.lastName}`)
-          .join(', '),
+        participantNames: Array.isArray(participants)
+          ? participants
+              .map((p: { firstName: string; lastName: string }) => `${p.firstName} ${p.lastName}`)
+              .join(', ')
+          : '',
         buyerName: `${buyerInfo.firstName} ${buyerInfo.lastName}`,
         buyerEmail: buyerInfo.email,
         buyerPhone: buyerInfo.phone,
         installmentDates: installmentDates.map((date) => date.toISOString()).join(','),
+        futureInstallmentAmountsCents: amounts.futureInstallmentAmountsCents.join(','),
+        paymentInstallmentPlan: installmentPlan,
         totalPackagePrice: amounts.totalPackageCents.toString(),
         totalAmount: totalChargeAmount.toString(),
         depositAmount: baseAmount.toString(),

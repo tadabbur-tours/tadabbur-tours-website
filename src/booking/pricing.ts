@@ -15,6 +15,8 @@ export type RoomSpotCounts = Record<RoomSpotType, number>;
 
 export type CheckoutPaymentMethod = 'stripe' | 'bank_transfer';
 
+export type InstallmentPlan = 'two' | 'three';
+
 const CARD_FEE_RATE = 0.029;
 const CARD_FIXED_FEE_CENTS = 30;
 const ACH_FEE_RATE = 0.008;
@@ -80,6 +82,15 @@ export function remainingBalanceCents(totalPackageCents: number, depositCents: n
   return totalPackageCents - depositCents;
 }
 
+/** Three equal parts in cents; remainder 1–2¢ on later installments. */
+export function splitPackageIntoThreeEqualParts(totalCents: number): [number, number, number] {
+  const base = Math.floor(totalCents / 3);
+  const rem = totalCents - base * 3;
+  if (rem === 0) return [base, base, base];
+  if (rem === 1) return [base, base, base + 1];
+  return [base, base + 1, base + 1];
+}
+
 export function stripeProcessingFeeCents(
   depositSubtotalCents: number,
   paymentMethod: CheckoutPaymentMethod
@@ -92,7 +103,8 @@ export function stripeProcessingFeeCents(
 
 export function computeCheckoutAmounts(
   spots: Partial<RoomSpotCounts> | undefined,
-  paymentMethod: CheckoutPaymentMethod
+  paymentMethod: CheckoutPaymentMethod,
+  options?: { installmentPlan?: InstallmentPlan }
 ): {
   spots: RoomSpotCounts;
   totalPackageCents: number;
@@ -100,9 +112,29 @@ export function computeCheckoutAmounts(
   balanceCents: number;
   processingFeeCents: number;
   totalChargeCents: number;
+  installmentPlan: InstallmentPlan;
+  futureInstallmentAmountsCents: number[];
 } {
+  const installmentPlan = options?.installmentPlan === 'three' ? 'three' : 'two';
   const normalized = normalizeRoomSpots(spots);
   const pkg = totalPackageCents(normalized);
+
+  if (installmentPlan === 'three') {
+    const [first, second, third] = splitPackageIntoThreeEqualParts(pkg);
+    const balanceCents = second + third;
+    const fee = stripeProcessingFeeCents(first, paymentMethod);
+    return {
+      spots: normalized,
+      totalPackageCents: pkg,
+      depositCents: first,
+      balanceCents,
+      processingFeeCents: fee,
+      totalChargeCents: first + fee,
+      installmentPlan: 'three',
+      futureInstallmentAmountsCents: [second, third],
+    };
+  }
+
   const dep = depositCentsFromPackageTotal(pkg);
   const bal = remainingBalanceCents(pkg, dep);
   const fee = stripeProcessingFeeCents(dep, paymentMethod);
@@ -113,6 +145,8 @@ export function computeCheckoutAmounts(
     balanceCents: bal,
     processingFeeCents: fee,
     totalChargeCents: dep + fee,
+    installmentPlan: 'two',
+    futureInstallmentAmountsCents: [bal],
   };
 }
 

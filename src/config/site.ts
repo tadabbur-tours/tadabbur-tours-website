@@ -14,7 +14,11 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Contact Us', sectionId: 'contact' },
 ];
 
-/** Remaining 50% trip balance due (matches Stripe checkout metadata / reminders). */
+/** Second installment (3-pay plan only): installment 2 of 3. */
+export const SECOND_TRIP_INSTALLMENT_DUE_LABEL = 'November 15, 2026';
+export const SECOND_TRIP_INSTALLMENT_DUE_DATE = new Date('2026-11-15T12:00:00.000Z');
+
+/** Final / single balance date (2-pay: remaining 50%; 3-pay: installment 3 of 3). */
 export const FINAL_TRIP_BALANCE_DUE_LABEL = 'December 15, 2026';
 export const FINAL_TRIP_BALANCE_DUE_DATE = new Date('2026-12-15T12:00:00.000Z');
 
