@@ -42,7 +42,7 @@ const CONTRACT_SECTIONS: ContractSection[] = [
       '﷽',
       'In the name of Allah, The Most Gracious, The Most Merciful.',
       'We testify that there is no God worthy of worship except Allah, and we testify that Prophet Muhammad (peace and blessings be upon him) is His final servant and messenger.',
-      'This contract has been mutually agreed upon between Tadabbur Tours, LLC and the undersigned Participant. By signing this Agreement, the Participant acknowledges and agrees to be legally bound by the following terms and conditions.'
+      'This contract has been mutually agreed upon between Tadabbur LLC and the undersigned Participant. By signing this Agreement, the Participant acknowledges and agrees to be legally bound by the following terms and conditions.'
     ]
   },
   {
@@ -84,11 +84,19 @@ const CONTRACT_SECTIONS: ContractSection[] = [
     ]
   },
   {
-    heading: 'Refund Policy',
+    heading: 'Cancellation and Refund Policy',
+    list: [
+      'Cancellation requests made 120 days or less prior to departure are eligible for up to a maximum 50% refund of the package price after all applicable deductions',
+      'If cancellation is requested less than 60 days prior to departure, no refund will be issued',
+      '$150 cancellation fee per traveler charged by Tadabbur Tours',
+      'Airline cancellation policy applies if tickets have been issued',
+      '$150 visa processing fee if the visa has been issued',
+      '$75 Haramain train ticket fee if train tickets have been issued',
+      'Deposits are non-refundable after 2 weeks from the date of signup'
+    ],
     body: [
-      'The initial deposit is refundable until November 1, 2026. After flight tickets have been purchased, no refunds will be processed under any circumstances.',
-      'The registered participant (signee) assumes full financial responsibility for all individuals included in their booking or package.',
-      'All refunds will be issued to the original method of payment. If the original payment method is unavailable, Tadabbur Tours may issue the refund via check or bank transfer at its sole discretion.'
+      'The remaining balance, if applicable, will be refunded after all deductions have been applied.',
+      'All cancellations must be submitted in writing via email.'
     ]
   },
   {
